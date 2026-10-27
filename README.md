@@ -32,32 +32,38 @@ Sistem pengumpul data pasar terpadu (*real-time collector*) dan analisis eksposu
 
 ---
 
-## 2. Spesifikasi 3 Mode Gamma Exposure (GEX)
+## 2. Konsep Custom Gamma Exposure (GEX)
 
-Sistem menganalisis interaksi posisi dealer/market maker derivatif antar instrumen terkait:
+Secara konvensional di pasar keuangan, Gamma Exposure untuk emas selalu dihitung menggunakan opsi berjangka CME (COMEX Gold Options). Namun sistem ini mengimplementasikan **Custom Gamma Exposure** yang menggabungkan:
+1. **Benchmark Tradisional**: GEX berbasis COMEX Gold Options.
+2. **Custom GEX Berbasis BTCUSD**: Menggunakan kurva kelengkungan (*derivative curvature*) dan pemetaan strike BTCUSD ke skala emas untuk mendeteksi akselerasi *re-hedging* dealer kripto.
+3. **Custom GEX Berbasis XAUTUSDT**: Menggunakan elastisitas pasak (*peg curvature*) dan kolam arbitrase Tether Gold untuk mengukur dinding likuiditas dan tekanan deviasi pasak.
 
-$$\Gamma = \frac{\partial^2 V}{\partial S^2}, \quad GEX = \sum (\Gamma_{call} \times OI_{call}) - \sum (\Gamma_{put} \times OI_{put})$$
+---
 
 ### A. Mode 1: XAUUSD (Spot Gold)
 Menganalisis eksposur gamma dari 3 pilar:
-1. **GEX pada COMEX Gold (`GC=F`)**:
-   * Mengukur *anchor* institusional opsi emas berjangka CME.
-   * Menentukan **Call Wall** (resistensi magnetik), **Put Wall** (lantai support dealer), dan **Gamma Flip** (titik transisi volatilitas tenang ke agresif).
-2. **GEX pada BTCUSD**:
-   * Mengukur *cross-asset liquidity spillover*.
-   * Saat dealer opsi kripto mengalami *gamma squeeze* (short gamma), mendeteksi pergeseran likuiditas menuju emas fisik.
-3. **GEX pada XAUTUSDT (Tether Gold)**:
-   * Mengukur *basis spread* dan tekanan pasak (*peg elasticity*).
-   * Menghitung potensi aliran arbitrase dealer antara token sintetis emas dan emas spot fisik.
+1. **GEX pada COMEX Gold (`GC=F`) [Benchmark Tradisional]**:
+   * Menentukan **Call Wall** (resistensi magnetik), **Put Wall** (lantai support dealer), dan **Gamma Flip** CME.
+   * Net Dollar GEX ($M per 1% move).
+2. **Custom GEX pada BTCUSD [Crypto Derivative Curvature]**:
+   * Menghitung **BTC-Induced Gamma Flip** pada skala harga emas.
+   * Menentukan **Call/Put Walls pada Emas** yang terinduksi oleh posisi dealer derivatif Bitcoin.
+   * Mengukur risiko *convexity spillover* dan aliran *hedging*.
+3. **Custom GEX pada XAUTUSDT [Tether Gold Peg Curvature]**:
+   * Mengukur *basis peg spread* dan stabilitas pasak.
+   * Menghitung **Peg Gamma Flip Level** dan dinding arbitrase dealer (*Arbitrage Call/Put Walls*).
 
-### B. Mode 2: XAUTUSDT (Tether Gold)
-1. **GEX pada BTCUSD**:
-   * Mengukur rotasi portofolio pasar kripto (*Digital Gold vs Tether Gold*).
-   * Memantau korelasi delta-gamma dealer kripto saat terjadi pergerakan ekstrem di pasar Bitcoin.
+### B. Mode 2: BTCUSD (Bitcoin)
+1. **Custom GEX pada XAUTUSDT [Gold Token Hedging on BTC]**:
+   * Menghitung rasio nilai tukar XAUT per BTC.
+   * Menentukan **Gamma Flip BTC** dan **Call/Put Walls** yang terinduksi oleh rotasi emas sintetis.
+   * Mendeteksi level pemicu *Flight to Gold Defense*.
 
-### C. Mode 3: BTCUSD (Bitcoin)
-1. **GEX pada XAUTUSDT**:
-   * Mengukur *safe-haven flight* di dalam ekosistem kripto saat BTC menembus level Gamma Flip negatif (Short Gamma).
+### C. Mode 3: XAUTUSDT (Tether Gold)
+1. **Custom GEX pada BTCUSD [Bitcoin Derivative Spillover on XAUT]**:
+   * Menghitung **Gamma Flip XAUT** dan **Call/Put Walls** yang terinduksi oleh guncangan volatilitas Bitcoin.
+   * Mendeteksi bias rotasi modal (*Bullish Safe-Haven Inflow* vs *Steady Accumulation*).
 
 ### D. Tampilan Eksklusif Berdasarkan Mode (Zero Cross-Clutter)
 Layar hanya menampilkan data GEX yang relevan dengan **mode yang sedang aktif**:

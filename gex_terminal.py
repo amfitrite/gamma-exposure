@@ -384,13 +384,13 @@ class GEXTerminalHUD:
                 text=f"Spot: ${xau_spot:,.2f}  │  Bid: ${xau_bid:,.2f}  │  Ask: ${xau_ask:,.2f}  │  Spread: ${xau_spread:.2f}  │  Vol: {xau_vol:.2f}"
             )
 
-            # Hitung 3 Pilar GEX XAUUSD
-            g_comex = gex_engine.compute_gold_gex(xau_spot, comex_px, comex_chg)
-            g_btc = gex_engine.compute_btc_cross_gex(btc_px, btc_chg)
-            g_xaut = gex_engine.compute_xaut_peg_gex(xau_spot, xaut_px, xaut_chg)
+            # Hitung 3 Pilar GEX XAUUSD (COMEX Benchmark + 2 Custom GEX)
+            g_comex = gex_engine.compute_gold_comex_gex(xau_spot, comex_px, comex_chg)
+            g_btc = gex_engine.compute_gold_via_btcusd_custom_gex(xau_spot, btc_px, btc_chg)
+            g_xaut = gex_engine.compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_px, xaut_chg)
 
-            # 1. GEX COMEX
-            self.txt_display.insert(tk.END, "1. GEX PADA COMEX GOLD (GC=F):\n", "title")
+            # 1. GEX COMEX GOLD (BENCHMARK TRADISIONAL)
+            self.txt_display.insert(tk.END, "1. GEX PADA COMEX GOLD (GC=F) [TRADISIONAL CME BENCHMARK]:\n", "title")
             basis_str = f"{g_comex['basis_spread']:+.2f}"
             self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str}\n")
             
@@ -404,22 +404,29 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Major Put Wall   : ${g_comex['put_wall']:,.2f}  (Lantai Support Dealer)\n")
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_comex['net_gex_m']:+.2f}M per 1% move\n\n")
 
-            # 2. GEX BTCUSD
-            self.txt_display.insert(tk.END, "2. GEX PADA BTCUSD (CROSS-ASSET SENSITIVITY):\n", "title")
-            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_btc['btc_price']:,.2f} ({g_btc['btc_chg_pct']:+.2f}%)\n")
+            # 2. CUSTOM GEX PADA BTCUSD
+            self.txt_display.insert(tk.END, "2. CUSTOM GEX PADA BTCUSD [CRYPTO DERIVATIVE CURVATURE]:\n", "title")
+            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_btc['btc_price']:,.2f} ({g_btc['btc_chg_pct']:+.2f}%) │ Rasio: {g_btc['ratio_btc_to_xau']:.2f}x\n")
             btc_tag = "green" if g_btc["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • BTC Gamma Status : ")
             self.txt_display.insert(tk.END, f"{g_btc['regime']}\n", btc_tag)
-            self.txt_display.insert(tk.END, f"   • Spillover Impact : {g_btc['spillover_risk']}\n")
-            self.txt_display.insert(tk.END, f"   • Shock Trigger    : ")
-            self.txt_display.insert(tk.END, f"${g_btc['shock_level']:,.2f} (Batas Likuidasi Kripto)\n\n", "yellow")
+            self.txt_display.insert(tk.END, f"     ({g_btc['regime_desc']})\n", "dim")
+            self.txt_display.insert(tk.END, f"   • BTC Gamma Flip   : ")
+            self.txt_display.insert(tk.END, f"${g_btc['gamma_flip']:,.2f} (Level Emas Terinduksi BTC)\n", "yellow")
+            self.txt_display.insert(tk.END, f"   • Strike Walls XAU : Call Wall: ${g_btc['call_wall']:,.2f} │ Put Wall: ${g_btc['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Net BTC GEX Flow : ${g_btc['net_gex_m']:+.2f}M │ {g_btc['spillover_risk']}\n\n")
 
-            # 3. GEX XAUTUSDT
-            self.txt_display.insert(tk.END, "3. GEX PADA XAUTUSDT (TETHER GOLD PEG):\n", "title")
-            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_xaut['xaut_price']:,.2f}\n")
-            self.txt_display.insert(tk.END, f"   • Basis Peg Spread : ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%)\n")
-            self.txt_display.insert(tk.END, f"   • Peg Stability    : {g_xaut['peg_status']}\n")
-            self.txt_display.insert(tk.END, f"   • Arbitrage Flow   : {g_xaut['arb_risk']}\n")
+            # 3. CUSTOM GEX PADA XAUTUSDT
+            self.txt_display.insert(tk.END, "3. CUSTOM GEX PADA XAUTUSDT [TETHER GOLD PEG CURVATURE]:\n", "title")
+            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_xaut['xaut_price']:,.2f} │ Spread: ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%)\n")
+            xaut_tag = "green" if g_xaut["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Peg Gamma Status : ")
+            self.txt_display.insert(tk.END, f"{g_xaut['regime']}\n", xaut_tag)
+            self.txt_display.insert(tk.END, f"     ({g_xaut['regime_desc']})\n", "dim")
+            self.txt_display.insert(tk.END, f"   • Peg Gamma Flip   : ")
+            self.txt_display.insert(tk.END, f"${g_xaut['gamma_flip']:,.2f} │ Pasak: {g_xaut['peg_stability']}\n", "yellow")
+            self.txt_display.insert(tk.END, f"   • Arbitrage Walls  : Call Wall: ${g_xaut['call_wall']:,.2f} │ Put Wall: ${g_xaut['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Net XAUT GEX     : ${g_xaut['net_gex_m']:+.2f}M per 1% move\n")
 
         elif self.current_mode == "BTCUSD":
             # --- MODE 2: BTCUSD ---
@@ -429,16 +436,21 @@ class GEXTerminalHUD:
                 text=f"Spot: ${btc_px:,.2f}  │  24H Change: {btc_chg:+.2f}% {chg_arrow}  │  Source: Binance Vision Direct Node"
             )
 
-            g_btc_mode = gex_engine.compute_mode_btcusd(btc_px, btc_chg, xaut_px)
+            g_btc_mode = gex_engine.compute_mode_btcusd_custom_gex(btc_px, btc_chg, xaut_px)
 
-            self.txt_display.insert(tk.END, "1. GEX PADA XAUTUSDT (GOLD TOKEN SENSITIVITY):\n", "title")
-            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_btc_mode['xaut_price']:,.2f}\n")
-            self.txt_display.insert(tk.END, f"   • Relative Ratio   : {g_btc_mode['ratio_xaut_per_btc']:.2f} XAUT per 1 BTC\n")
+            self.txt_display.insert(tk.END, "1. CUSTOM GEX PADA XAUTUSDT [GOLD TOKEN HEDGING ON BTC]:\n", "title")
+            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_btc_mode['xaut_price']:,.2f} │ Rasio: {g_btc_mode['ratio_xaut_per_btc']:.2f} XAUT/BTC\n")
+            reg_tag = "green" if g_btc_mode["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Gamma Regime     : ")
+            self.txt_display.insert(tk.END, f"{g_btc_mode['regime']}\n", reg_tag)
+            self.txt_display.insert(tk.END, f"   • BTC Gamma Flip   : ")
+            self.txt_display.insert(tk.END, f"${g_btc_mode['gamma_flip']:,.2f}\n", "yellow")
+            self.txt_display.insert(tk.END, f"   • Major Walls BTC  : Call Wall: ${g_btc_mode['call_wall']:,.2f} │ Put Wall: ${g_btc_mode['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc_mode['net_gex_m']:+.2f}M per 1% move\n")
             self.txt_display.insert(tk.END, f"   • Capital Rotation : ")
             self.txt_display.insert(tk.END, f"{g_btc_mode['flow_bias']}\n", "yellow")
             self.txt_display.insert(tk.END, f"   • Hedging Trigger  : ")
-            self.txt_display.insert(tk.END, f"Jika BTC < ${g_btc_mode['hedging_trigger']:,.2f} (Flight to Gold Defense)\n", "red")
-            self.txt_display.insert(tk.END, f"   • Dealer Bias      : {g_btc_mode['dealer_bias']}\n")
+            self.txt_display.insert(tk.END, f"Jika BTC < ${g_btc_mode['hedging_trigger']:,.2f} (Defense Squeeze)\n", "red")
 
         elif self.current_mode == "XAUTUSDT":
             # --- MODE 3: XAUTUSDT ---
@@ -448,12 +460,18 @@ class GEXTerminalHUD:
                 text=f"Spot: ${xaut_px:,.2f}  │  24H Change: {xaut_chg:+.2f}% {chg_arrow}  │  Source: OKX Direct Market API"
             )
 
-            g_xaut_mode = gex_engine.compute_mode_xautusdt(xaut_px, xaut_chg, btc_px, btc_chg)
+            g_xaut_mode = gex_engine.compute_mode_xautusdt_custom_gex(xaut_px, xaut_chg, btc_px, btc_chg)
 
-            self.txt_display.insert(tk.END, "1. GEX PADA BTCUSD (CRYPTO PORTFOLIO ROTATION):\n", "title")
-            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_xaut_mode['btc_price']:,.2f}\n")
-            self.txt_display.insert(tk.END, f"   • BTC Volatility   : {g_xaut_mode['vol_state']}\n")
-            self.txt_display.insert(tk.END, f"   • Peg Correlation  : {g_xaut_mode['peg_correlation']:.2f}\n")
+            self.txt_display.insert(tk.END, "1. CUSTOM GEX PADA BTCUSD [BITCOIN DERIVATIVE SPILLOVER ON XAUT]:\n", "title")
+            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_xaut_mode['btc_price']:,.2f} ({g_xaut_mode['btc_chg_pct']:+.2f}%)\n")
+            reg_tag = "green" if g_xaut_mode["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Gamma Regime     : ")
+            self.txt_display.insert(tk.END, f"{g_xaut_mode['regime']}\n", reg_tag)
+            self.txt_display.insert(tk.END, f"   • XAUT Gamma Flip  : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_mode['gamma_flip']:,.2f}\n", "yellow")
+            self.txt_display.insert(tk.END, f"   • Major Walls XAUT : Call Wall: ${g_xaut_mode['call_wall']:,.2f} │ Put Wall: ${g_xaut_mode['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut_mode['net_gex_m']:+.2f}M per 1% move\n")
+            self.txt_display.insert(tk.END, f"   • Volatility State : {g_xaut_mode['vol_state']}\n")
             self.txt_display.insert(tk.END, f"   • Rotational Bias  : ")
             self.txt_display.insert(tk.END, f"{g_xaut_mode['rotational_bias']}\n", "green")
 
