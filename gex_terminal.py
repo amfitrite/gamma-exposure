@@ -35,6 +35,14 @@ class GEXTerminalHUD:
         self.root = root
         self.root.title("GEX Terminal")
         
+        # Pasang Icon GEX 2D
+        ico_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
+        if os.path.exists(ico_path):
+            try:
+                self.root.iconbitmap(ico_path)
+            except Exception:
+                pass
+
         # 2. FRAMELESS WINDOW (Hapus total title bar dan border OS)
         self.root.overrideredirect(True)
         
