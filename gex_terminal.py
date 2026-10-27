@@ -261,13 +261,13 @@ class GEXTerminalHUD:
             self.txt_display.tag_bind(tag, "<Enter>", lambda e: self.txt_display.configure(cursor="hand2"))
             self.txt_display.tag_bind(tag, "<Leave>", lambda e: self.txt_display.configure(cursor="arrow"))
 
-        # 5. FOOTER (Status Scrapper Aktif + 3 Tombol Test Mandiri)
+        # 5. FOOTER (Status Scrapper Aktif + 3 Tombol Cek Manual PowerShell)
         footer = tk.Frame(self.container, bg=self.c_header_bg, height=30)
         footer.pack(fill=tk.X, side=tk.BOTTOM)
         
         lbl_scrapper_title = tk.Label(
             footer, 
-            text=" UJI SCRAPPER: ", 
+            text=" CEK MANUAL POWERSHELL: ", 
             font=self.font_mono_bold, 
             fg=self.c_text_dim, 
             bg=self.c_header_bg
@@ -425,7 +425,7 @@ class GEXTerminalHUD:
 
             # 1. COMEX
             self.txt_display.insert(tk.END, f"1. COMEX (Futures: ${g_comex['comex_price']:,.2f}) ", "title")
-            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST CMD] >>\n", "link_comex")
+            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST POWERSHELL] >>\n", "link_comex")
             basis_str = f"{g_comex['basis_spread']:+.2f}"
             regime_tag = "green" if g_comex["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str} │ Regime: ")
@@ -438,7 +438,7 @@ class GEXTerminalHUD:
 
             # 2. BTCUSD
             self.txt_display.insert(tk.END, f"2. BTCUSD (Spot: ${g_btc['btc_price']:,.2f}) ", "title")
-            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST CMD] >>\n", "link_btc")
+            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST POWERSHELL] >>\n", "link_btc")
             btc_tag = "green" if g_btc["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • 24H Change       : {g_btc['btc_chg_pct']:+.2f}% │ Rasio: {g_btc['ratio_btc_to_xau']:.2f}x │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_btc['regime']}\n", btc_tag)
@@ -450,7 +450,7 @@ class GEXTerminalHUD:
 
             # 3. XAUTUSDT
             self.txt_display.insert(tk.END, f"3. XAUTUSDT (Spot: ${g_xaut['xaut_price']:,.2f}) ", "title")
-            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST CMD] >>\n", "link_xaut")
+            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST POWERSHELL] >>\n", "link_xaut")
             xaut_tag = "green" if g_xaut["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Spread vs Spot   : ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%) │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_xaut['regime']}\n", xaut_tag)
@@ -525,21 +525,21 @@ class GEXTerminalHUD:
         self.txt_display.configure(state=tk.DISABLED)
 
     def launch_scrapper_tester(self, target="all"):
-        """Buka pop-up jendela Command Prompt terminal menjalankan tester scrapper satu per satu."""
+        """Buka pop-up jendela PowerShell mandiri menjalankan verifikasi scrapper tanpa perlu ketik manual (Zero-Typing)."""
         try:
             import subprocess
-            tester_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_scrappers.py")
-            title_map = {
-                "1": "SCRAPPER 1: COMEX GOLD TESTER",
-                "2": "SCRAPPER 2: BTCUSD BINANCE TESTER",
-                "3": "SCRAPPER 3: XAUTUSDT OKX TESTER",
-                "all": "ALL SCRAPPERS TESTER"
-            }
-            win_title = title_map.get(str(target), "SCRAPPER TESTER")
-            cmd = f'start "{win_title}" cmd.exe /k "{sys.executable}" "{tester_path}" {target}'
-            subprocess.Popen(cmd, shell=True)
+            ps1_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manual_check.ps1")
+            if os.path.exists(ps1_path):
+                # Eksekusi script PowerShell langsung di jendela PowerShell baru yang tetap terbuka
+                cmd = f'start "CEK MANUAL SCRAPPER {target}" powershell.exe -NoExit -ExecutionPolicy Bypass -File "{ps1_path}" {target}'
+                subprocess.Popen(cmd, shell=True)
+            else:
+                # Fallback ke test_scrappers.py
+                tester_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_scrappers.py")
+                cmd = f'start "SCRAPPER TESTER" cmd.exe /k "{sys.executable}" "{tester_path}" {target}'
+                subprocess.Popen(cmd, shell=True)
         except Exception as e:
-            print(f"[GEX Terminal] Gagal membuka tester pop-up: {e}")
+            print(f"[GEX Terminal] Gagal membuka tester pop-up PowerShell: {e}")
 
     def close_app(self):
         self.is_running = False

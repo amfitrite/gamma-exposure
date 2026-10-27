@@ -175,27 +175,39 @@ EA MQL5 kustom yang mampu menyiarkan tick order flow ke hingga 5 port TCP secara
 
 | File | Keterangan |
 | :--- | :--- |
+| `gex_terminal.py` | Terminal HUD GEX 3-Mode teks murni frameless dengan tombol 1-klik buka PowerShell (Zero-Typing). |
+| `gex_terminal.pyw` | Launcher windowless Windows untuk GEX Terminal (tanpa flash CMD). |
+| `gex_engine.py` | Engine kalkulasi matematis Gamma Exposure, Call/Put Walls, Gamma Flip, dan Net Dollar GEX ($M). |
+| `mt5_listener.py` | Listener socket TCP thread-safe untuk menerima tick real-time dari MT5 EA (port 5556 / 5555). |
+| `manual_check.ps1` | Script uji mandiri PowerShell otomatis (Zero-Typing) untuk COMEX, BTCUSD, dan XAUTUSDT. |
 | `collector.py` | Engine pengambil data live HTTPS direct socket (Binance, OKX, Yahoo Finance) dengan verifikasi audit anti-proxy dan anti-mock. |
-| `market_hud.py` | Terminal HUD frameless teks murni untuk pemantauan harga live. |
-| `market_hud.pyw` | Launcher windowless Windows (tanpa jendela konsol hitam CMD). |
 | `multi_port_bridge_EA.mq5` | Expert Advisor MT5 pengirim tick ke multi-port (5555+). |
-| `start_hud.bat` | Skrip batch sekali-klik untuk meluncurkan HUD. |
 | `README.md` | Dokumentasi arsitektur dan spesifikasi sistem. |
 
 ---
 
 ## 5. Cara Menjalankan
 
-### Menjalankan Market HUD Saat Ini:
+### Menjalankan GEX Terminal HUD:
 ```powershell
-# Jalankan GUI teks frameless
-pythonw market_hud.pyw
+# Jalankan GUI GEX Terminal (Windowless, bersih tanpa konsol hitam)
+pythonw gex_terminal.pyw
 
-# Atau uji crawler mandiri di konsol
-python collector.py
+# Atau via python langsung
+python gex_terminal.py
+```
+
+### Uji Mandiri Scrapper Langsung (Zero-Typing PowerShell):
+Pengguna dapat langsung mengklik tombol **`[1. COMEX]`**, **`[2. BTCUSD]`**, atau **`[3. XAUTUSDT]`** pada bagian footer terminal, atau mengklik link `[* ONLINE] [KLIK TEST POWERSHELL] >>` pada body. Jendela PowerShell akan langsung muncul mengeksekusi koneksi API dan menampilkan data valid tanpa perlu mengetik manual:
+```powershell
+# Atau eksekusi script manual dari PowerShell jika diinginkan:
+powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 1   # Scrapper 1 (COMEX)
+powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 2   # Scrapper 2 (BTCUSD)
+powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 3   # Scrapper 3 (XAUTUSDT)
 ```
 
 ### Navigasi & Pintasan Keyboard:
+* **Tombol Mode**: Klik `[XAUUSD]`, `[BTCUSD]`, atau `[XAUTUSDT]` di header atas untuk berpindah mode.
+* **Tombol Footer Scrapper**: Klik `[1. COMEX]`, `[2. BTCUSD]`, atau `[3. XAUTUSDT]` untuk membuka jendela uji PowerShell otomatis.
 * **Klik & Drag**: Memindahkan posisi jendela di layar monitor.
 * **ESC** atau **Q**: Keluar dari aplikasi.
-* **SPASI** atau **R**: Refresh data instan secara manual.
