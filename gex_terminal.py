@@ -540,7 +540,22 @@ class GEXTerminalHUD:
             pass
         sys.exit(0)
 
+def cleanup_stale_instances():
+    """Hentikan instansi gex_terminal lama agar port TCP 5556 tidak terhalang."""
+    import subprocess
+    curr_pid = os.getpid()
+    try:
+        ps_cmd = f"Get-CimInstance Win32_Process | Where-Object {{ ($_.Name -eq 'python.exe' -or $_.Name -eq 'pythonw.exe') -and ($_.CommandLine -like '*gex_terminal.py*' -or $_.CommandLine -like '*gex_terminal.pyw*') -and $_.ProcessId -ne {curr_pid} }} | Select-Object -ExpandProperty ProcessId"
+        out = subprocess.check_output(["powershell.exe", "-NoProfile", "-Command", ps_cmd], timeout=3).decode()
+        for p in out.split():
+            pid_str = p.strip()
+            if pid_str.isdigit() and int(pid_str) != curr_pid:
+                subprocess.run(["taskkill", "/F", "/PID", pid_str], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
 def main():
+    cleanup_stale_instances()
     root = tk.Tk()
     app = GEXTerminalHUD(root)
     root.mainloop()
