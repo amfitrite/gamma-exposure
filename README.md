@@ -198,7 +198,7 @@ python gex_terminal.py
 ```
 
 ### Uji Mandiri Scrapper Langsung (Zero-Typing PowerShell):
-Pengguna dapat langsung mengklik tombol **`[1. COMEX]`**, **`[2. BTCUSD]`**, atau **`[3. XAUTUSDT]`** pada bagian footer terminal, atau mengklik link `[* ONLINE] [KLIK TEST POWERSHELL] >>` pada body. Jendela PowerShell akan langsung muncul mengeksekusi koneksi API dan menampilkan data valid tanpa perlu mengetik manual:
+Pengguna dapat langsung mengklik tombol **`[1. COMEX]`**, **`[2. BTCUSD]`**, atau **`[3. XAUTUSDT]`** pada bagian footer terminal. Jendela PowerShell akan langsung muncul mengeksekusi koneksi API dan menampilkan data valid tanpa perlu mengetik manual:
 ```powershell
 # Atau eksekusi script manual dari PowerShell jika diinginkan:
 powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 1   # Scrapper 1 (COMEX)

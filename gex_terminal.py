@@ -250,16 +250,6 @@ class GEXTerminalHUD:
         self.txt_display.tag_configure("yellow", font=self.font_mono_bold, foreground=self.c_yellow)
         self.txt_display.tag_configure("dim", font=self.font_mono_sm, foreground=self.c_text_dim)
         self.txt_display.tag_configure("white_bold", font=self.font_mono_bold, foreground=self.c_text_main)
-        self.txt_display.tag_configure("link_comex", font=self.font_mono_bold, foreground=self.c_yellow, underline=1)
-        self.txt_display.tag_configure("link_btc", font=self.font_mono_bold, foreground=self.c_yellow, underline=1)
-        self.txt_display.tag_configure("link_xaut", font=self.font_mono_bold, foreground=self.c_yellow, underline=1)
-
-        self.txt_display.tag_bind("link_comex", "<Button-1>", lambda e: self.launch_scrapper_tester("1"))
-        self.txt_display.tag_bind("link_btc", "<Button-1>", lambda e: self.launch_scrapper_tester("2"))
-        self.txt_display.tag_bind("link_xaut", "<Button-1>", lambda e: self.launch_scrapper_tester("3"))
-        for tag in ["link_comex", "link_btc", "link_xaut"]:
-            self.txt_display.tag_bind(tag, "<Enter>", lambda e: self.txt_display.configure(cursor="hand2"))
-            self.txt_display.tag_bind(tag, "<Leave>", lambda e: self.txt_display.configure(cursor="arrow"))
 
         # 5. FOOTER (Status Scrapper Aktif + 3 Tombol Cek Manual PowerShell)
         footer = tk.Frame(self.container, bg=self.c_header_bg, height=30)
@@ -424,8 +414,7 @@ class GEXTerminalHUD:
             g_xaut = gex_engine.compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_px, xaut_chg)
 
             # 1. COMEX
-            self.txt_display.insert(tk.END, f"1. COMEX (Futures: ${g_comex['comex_price']:,.2f}) ", "title")
-            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST POWERSHELL] >>\n", "link_comex")
+            self.txt_display.insert(tk.END, f"1. COMEX (Futures: ${g_comex['comex_price']:,.2f})\n", "title")
             basis_str = f"{g_comex['basis_spread']:+.2f}"
             regime_tag = "green" if g_comex["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str} │ Regime: ")
@@ -437,8 +426,7 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_comex['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 2. BTCUSD
-            self.txt_display.insert(tk.END, f"2. BTCUSD (Spot: ${g_btc['btc_price']:,.2f}) ", "title")
-            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST POWERSHELL] >>\n", "link_btc")
+            self.txt_display.insert(tk.END, f"2. BTCUSD (Spot: ${g_btc['btc_price']:,.2f})\n", "title")
             btc_tag = "green" if g_btc["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • 24H Change       : {g_btc['btc_chg_pct']:+.2f}% │ Rasio: {g_btc['ratio_btc_to_xau']:.2f}x │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_btc['regime']}\n", btc_tag)
@@ -449,8 +437,7 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 3. XAUTUSDT
-            self.txt_display.insert(tk.END, f"3. XAUTUSDT (Spot: ${g_xaut['xaut_price']:,.2f}) ", "title")
-            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST POWERSHELL] >>\n", "link_xaut")
+            self.txt_display.insert(tk.END, f"3. XAUTUSDT (Spot: ${g_xaut['xaut_price']:,.2f})\n", "title")
             xaut_tag = "green" if g_xaut["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Spread vs Spot   : ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%) │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_xaut['regime']}\n", xaut_tag)
