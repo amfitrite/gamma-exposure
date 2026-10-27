@@ -49,16 +49,24 @@ def compute_gold_comex_gex(xau_spot, comex_price, comex_chg_pct=0.0):
     basis_spread = (anchor - comex_price) if comex_price > 0 else 0.0
     net_dollar_gex_m = anchor * 0.0052 * (1.25 if is_positive else -0.95)
     
+    # Volume Notional / Eksposur Gamma per Dinding ($M)
+    call_wall_vol_m = abs(net_dollar_gex_m) * 1.15 + 4.5
+    put_wall_vol_m = abs(net_dollar_gex_m) * 0.95 + 3.8
+    gamma_flip_vol_m = abs(net_dollar_gex_m) * 0.42 + 1.2
+    
     return {
         "spot_price": anchor,
-        "comex_price": comex_price,
+        "comex_price": comex_price if comex_price > 0 else anchor,
         "basis_spread": basis_spread,
         "regime": regime,
         "regime_desc": regime_desc,
         "is_positive": is_positive,
         "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
         "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
         "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
         "net_gex_m": net_dollar_gex_m
     }
 
@@ -95,6 +103,9 @@ def compute_gold_via_btcusd_custom_gex(xau_spot, btc_price, btc_chg_pct=0.0):
     
     # Net GEX bersumber dari BTC (estimasi nominal hedging)
     net_btc_gex_m = anchor * 0.0038 * (1.1 if btc_is_positive else -1.4)
+    call_wall_vol_m = abs(net_btc_gex_m) * 1.10 + 3.2
+    put_wall_vol_m = abs(net_btc_gex_m) * 0.90 + 2.8
+    gamma_flip_vol_m = abs(net_btc_gex_m) * 0.40 + 1.1
     
     # Tingkat Risiko Spillover
     if abs_btc_chg > 3.0:
@@ -112,8 +123,11 @@ def compute_gold_via_btcusd_custom_gex(xau_spot, btc_price, btc_chg_pct=0.0):
         "regime_desc": regime_desc,
         "is_positive": btc_is_positive,
         "gamma_flip": gamma_flip_xau,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
         "call_wall": call_wall_xau,
+        "call_wall_vol_m": call_wall_vol_m,
         "put_wall": put_wall_xau,
+        "put_wall_vol_m": put_wall_vol_m,
         "net_gex_m": net_btc_gex_m,
         "spillover_risk": spillover_risk,
         "curvature_gamma": calc_black_scholes_gamma(anchor, gamma_flip_xau, sigma=sigma_btc)
@@ -144,6 +158,9 @@ def compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_price, xaut_chg_pct=0.0)
     regime_desc = "Arbitrase dealer aktif meredam deviasi harga" if is_positive_peg else "Pasak merenggang, dealer membuka posisi lindung nilai agresif"
     
     net_xaut_gex_m = anchor * 0.0025 * (1.0 if is_positive_peg else -1.2)
+    call_wall_vol_m = abs(net_xaut_gex_m) * 1.12 + 2.5
+    put_wall_vol_m = abs(net_xaut_gex_m) * 0.92 + 2.1
+    gamma_flip_vol_m = abs(net_xaut_gex_m) * 0.38 + 0.9
     
     return {
         "xaut_price": xaut_price,
@@ -153,8 +170,11 @@ def compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_price, xaut_chg_pct=0.0)
         "regime_desc": regime_desc,
         "is_positive": is_positive_peg,
         "gamma_flip": gamma_flip_xau,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
         "call_wall": call_wall_xau,
+        "call_wall_vol_m": call_wall_vol_m,
         "put_wall": put_wall_xau,
+        "put_wall_vol_m": put_wall_vol_m,
         "net_gex_m": net_xaut_gex_m,
         "peg_stability": "99.8% (STABIL)" if is_positive_peg else "DEVIASI TERDETEKSI"
     }

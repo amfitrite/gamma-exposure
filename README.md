@@ -86,34 +86,34 @@ Satu-satunya elemen kontrol pada layar adalah **tombol pemilih 3 mode**: `[ XAUU
 >> MODE: XAUUSD (SPOT GOLD)
 Spot: $4,076.80 │ Bid: $4,076.65 │ Ask: $4,076.95 │ Spread: $0.30 │ Vol: 1.00
 ------------------------------------------------------------------------------------
-1. COMEX
+1. COMEX (Futures: $4,076.80)
    • Basis vs Futures : +$0.00 │ Regime: [+GEX POSITIVE] LONG GAMMA
-   • Gamma Flip Level : $4,065.00
-   • Call Wall        : $4,100.00
-   • Put Wall         : $4,025.00
+   • Call Wall        : $4,100.00 (Vol: $28.40M)
+   • Gamma Flip Level : $4,065.00 (Vol: $9.60M)
+   • Put Wall         : $4,025.00 (Vol: $24.80M)
    • Net Dollar GEX   : +$26.50M per 1% move
 
-2. BTCUSD
-   • BTC Spot Price   : $80,691.85 (+0.56%) │ Regime: [+GEX BTC] VOLATILITY DAMPENER
-   • Gamma Flip Level : $4,045.22
-   • Call Wall        : $4,140.00
-   • Put Wall         : $4,010.00
+2. BTCUSD (Spot: $80,691.85)
+   • 24H Change       : +0.56% │ Rasio: 19.79x │ Regime: [+GEX BTC] VOLATILITY DAMPENER
+   • Call Wall        : $4,140.00 (Vol: $18.50M)
+   • Gamma Flip Level : $4,045.22 (Vol: $8.20M)
+   • Put Wall         : $4,010.00 (Vol: $15.80M)
    • Net Dollar GEX   : +$17.04M per 1% move
 
-3. XAUTUSDT
-   • XAUT Spot Price  : $4,062.60 (Spread: $-14.20) │ Regime: [+GEX XAUT] TIGHT PEG
-   • Gamma Flip Level : $4,069.70
-   • Call Wall        : $4,098.10
-   • Put Wall         : $4,055.50
+3. XAUTUSDT (Spot: $4,062.60)
+   • Spread vs Spot   : $-14.20 (-0.35%) │ Regime: [+GEX XAUT] TIGHT PEG
+   • Call Wall        : $4,098.10 (Vol: $12.80M)
+   • Gamma Flip Level : $4,069.70 (Vol: $6.40M)
+   • Put Wall         : $4,055.50 (Vol: $11.20M)
    • Net Dollar GEX   : +$10.19M per 1% move
 
 ──────────────────────────────────────────────────────────────────────────────────
 [RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]
-INSTRUMEN     │ GAMMA FLIP    │ CALL WALL     │ PUT WALL      │ NET GEX
-──────────────┼───────────────┼───────────────┼───────────────┼───────────────────
-1. COMEX      │ $4,065.00     │ $4,100.00     │ $4,025.00     │ +$26.50M
-2. BTCUSD     │ $4,045.22     │ $4,140.00     │ $4,010.00     │ +$17.04M
-3. XAUTUSDT   │ $4,069.70     │ $4,098.10     │ $4,055.50     │ +$10.19M
+INSTRUMEN     │ CALL WALL (VOL)       │ GAMMA FLIP (VOL)      │ PUT WALL (VOL)
+──────────────┼───────────────────────┼───────────────────────┼───────────────────
+1. COMEX      │ $4,100.00 ($28.40M)   │ $4,065.00 ($9.60M)    │ $4,025.00 ($24.80M)
+2. BTCUSD     │ $4,140.00 ($18.50M)   │ $4,045.22 ($8.20M)    │ $4,010.00 ($15.80M)
+3. XAUTUSDT   │ $4,098.10 ($12.80M)   │ $4,069.70 ($6.40M)    │ $4,055.50 ($11.20M)
 ====================================================================================
 ```
 
