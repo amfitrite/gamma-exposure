@@ -55,15 +55,16 @@ Menganalisis eksposur gamma dari 3 pilar:
    * Mengukur rotasi portofolio pasar kripto (*Digital Gold vs Tether Gold*).
    * Memantau korelasi delta-gamma dealer kripto saat terjadi pergerakan ekstrem di pasar Bitcoin.
 
-### D. Kontrol Antarmuka Ultra-Minimalis
-Satu-satunya elemen interaktif pada antarmuka pengguna adalah **pemilih 3 mode**:
-* `[ XAUUSD ]` : Menampilkan harga live tick MT5 + GEX COMEX, GEX BTCUSD, GEX XAUTUSDT.
-* `[ BTCUSD ]` : Menampilkan harga live BTC + GEX XAUTUSDT.
-* `[ XAUTUSDT ]`: Menampilkan harga live XAUT + GEX BTCUSD.
+### D. Tampilan Eksklusif Berdasarkan Mode (Zero Cross-Clutter)
+Layar hanya menampilkan data GEX yang relevan dengan **mode yang sedang aktif**:
+* **Jika Mode `XAUUSD` Aktif**: 
+  * Layar **hanya menampilkan GEX untuk XAUUSD** (GEX pada COMEX, GEX pada BTCUSD, dan GEX pada XAUTUSDT). Data mode BTCUSD & XAUTUSDT disembunyikan total.
+* **Jika Mode `BTCUSD` Aktif**: 
+  * Layar **hanya menampilkan GEX untuk BTCUSD** (GEX pada XAUTUSDT). Data XAUUSD disembunyikan.
+* **Jika Mode `XAUTUSDT` Aktif**: 
+  * Layar **hanya menampilkan GEX untuk XAUTUSDT** (GEX pada BTCUSD). Data XAUUSD disembunyikan.
 
-Tidak ada tombol setting, slider, atau panel lain. Pergantian mode dapat dilakukan dengan:
-* **Klik Mouse Langsung** pada tab teks mode `[XAUUSD]`, `[BTCUSD]`, atau `[XAUTUSDT]`.
-* **Pintasan Keyboard Cepat**: Tombol angka `1`, `2`, atau `3` (atau tombol panah kiri/kanan).
+Satu-satunya elemen kontrol pada layar adalah **tombol pemilih 3 mode**: `[ XAUUSD ]`, `[ BTCUSD ]`, dan `[ XAUTUSDT ]`.
 
 ---
 
