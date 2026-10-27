@@ -251,18 +251,22 @@ class GEXTerminalHUD:
         self.txt_display.tag_configure("dim", font=self.font_mono_sm, foreground=self.c_text_dim)
         self.txt_display.tag_configure("white_bold", font=self.font_mono_bold, foreground=self.c_text_main)
 
-        # 5. FOOTER
-        footer = tk.Frame(self.container, bg=self.c_header_bg, height=24)
+        # 5. FOOTER (Status Scrapper Aktif + Klik untuk Pop-up Tester)
+        footer = tk.Frame(self.container, bg=self.c_header_bg, height=28)
         footer.pack(fill=tk.X, side=tk.BOTTOM)
         
-        self.lbl_footer = tk.Label(
+        self.btn_scrapper_test = tk.Label(
             footer, 
-            text="GEX TERMINAL // KLIK TOMBOL 1, 2, ATAU 3 UNTUK GANTI MODE │ DRAG UNTUK GESER", 
-            font=self.font_mono_sm, 
-            fg=self.c_text_dim, 
-            bg=self.c_header_bg
+            text=" [*] SEMUA SCRAPPER AKTIF  |  KLIK UNTUK POP-UP TESTER (UJI SATU PER SATU) >>", 
+            font=self.font_mono_bold, 
+            fg=self.c_green, 
+            bg=self.c_header_bg, 
+            cursor="hand2"
         )
-        self.lbl_footer.pack(side=tk.LEFT, padx=10, pady=2)
+        self.btn_scrapper_test.pack(side=tk.LEFT, padx=10, pady=4)
+        self.btn_scrapper_test.bind("<Button-1>", lambda e: self.launch_scrapper_tester())
+        self.btn_scrapper_test.bind("<Enter>", lambda e: self.btn_scrapper_test.configure(fg=self.c_yellow))
+        self.btn_scrapper_test.bind("<Leave>", lambda e: self.btn_scrapper_test.configure(fg=self.c_green))
         
         self.lbl_time = tk.Label(
             footer, 
@@ -271,7 +275,7 @@ class GEXTerminalHUD:
             fg=self.c_active_fg, 
             bg=self.c_header_bg
         )
-        self.lbl_time.pack(side=tk.RIGHT, padx=10, pady=2)
+        self.lbl_time.pack(side=tk.RIGHT, padx=10, pady=4)
         
         self.update_button_visuals()
 
@@ -486,6 +490,16 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"{g_xaut_mode['rotational_bias']}\n", "green")
 
         self.txt_display.configure(state=tk.DISABLED)
+
+    def launch_scrapper_tester(self):
+        """Buka pop-up jendela Command Prompt terminal menjalankan tester scrapper satu per satu."""
+        try:
+            import subprocess
+            tester_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_scrappers.py")
+            cmd = f'start "SCRAPPER TESTER - UJI SATU PER SATU" cmd.exe /k "{sys.executable}" "{tester_path}"'
+            subprocess.Popen(cmd, shell=True)
+        except Exception as e:
+            print(f"[GEX Terminal] Gagal membuka tester pop-up: {e}")
 
     def close_app(self):
         self.is_running = False
