@@ -63,7 +63,7 @@ class GEXTerminalHUD:
         
         # Dimensi Jendela
         self.win_width = 820
-        self.win_height = 620
+        self.win_height = 650
         
         # Posisikan tepat di tengah layar
         screen_w = self.root.winfo_screenwidth()
@@ -489,76 +489,160 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 4. TABEL RISET PERBANDINGAN TIGA PILAR (SKALA XAUUSD)
-            self.txt_display.insert(tk.END, "─" * 78 + "\n", "dim")
+            self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
             self.txt_display.insert(tk.END, "[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]\n", "white_bold")
-            tbl_hdr = f"{'INSTRUMEN':<13} │ {'CALL WALL (VOL)':<21} │ {'GAMMA FLIP (VOL)':<21} │ {'PUT WALL (VOL)'}\n"
+            tbl_hdr = f"{'INSTRUMEN':<13} │ {'CALL WALL (VOL)':<22} │ {'GAMMA FLIP (VOL)':<22} │ {'PUT WALL (VOL)'}\n"
             self.txt_display.insert(tk.END, tbl_hdr, "title")
-            self.txt_display.insert(tk.END, "─" * 78 + "\n", "dim")
+            self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
             
             for name, g in [("1. GC=F GOLD", g_comex), ("2. BTC/USDT", g_btc), ("3. XAUT/USDT", g_xaut)]:
+                c_str = f"${g['call_wall']:,.2f} (${g['call_wall_vol_m']:.1f}M)"
+                f_str = f"${g['gamma_flip']:,.2f} (${g['gamma_flip_vol_m']:.1f}M)"
+                p_str = f"${g['put_wall']:,.2f} (${g['put_wall_vol_m']:.1f}M)"
                 self.txt_display.insert(tk.END, f"{name:<13} │ ")
-                self.txt_display.insert(tk.END, f"${g['call_wall']:<8,.2f} (${g['call_wall_vol_m']:.1f}M)", "red")
+                self.txt_display.insert(tk.END, f"{c_str:<22}", "red")
                 self.txt_display.insert(tk.END, " │ ")
-                self.txt_display.insert(tk.END, f"${g['gamma_flip']:<8,.2f} (${g['gamma_flip_vol_m']:.1f}M)", "white_bold")
+                self.txt_display.insert(tk.END, f"{f_str:<22}", "white_bold")
                 self.txt_display.insert(tk.END, " │ ")
-                self.txt_display.insert(tk.END, f"${g['put_wall']:<8,.2f} (${g['put_wall_vol_m']:.1f}M)\n", "green")
+                self.txt_display.insert(tk.END, f"{p_str}\n", "green")
 
         elif self.current_mode == "BTCUSD":
             # --- MODE 2: BTCUSD ---
             chg_arrow = "▲" if btc_chg >= 0 else "▼"
-            self.lbl_spot_title.configure(text=">> MODE: BTCUSD")
+            self.lbl_spot_title.configure(text=">> MODE: BTCUSD (BINANCE CLOUD MIRROR)")
             self.lbl_spot_detail.configure(
                 text=f"Spot: ${btc_px:,.2f}  │  24H Change: {btc_chg:+.2f}% {chg_arrow}"
             )
 
-            g_btc_mode = gex_engine.compute_mode_btcusd_custom_gex(btc_px, btc_chg, xaut_px)
+            g_btc_native = gex_engine.compute_mode_btcusd_native_gex(btc_px, btc_chg)
+            g_btc_xaut = gex_engine.compute_mode_btcusd_via_xaut(btc_px, btc_chg, xaut_px)
+            g_btc_gold = gex_engine.compute_mode_btcusd_via_gold(btc_px, comex_px, comex_chg)
 
-            self.txt_display.insert(tk.END, "1. XAUTUSDT\n", "title")
-            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_btc_mode['xaut_price']:,.2f} │ Rasio: {g_btc_mode['ratio_xaut_per_btc']:.2f} XAUT/BTC\n")
-            reg_tag = "green" if g_btc_mode["is_positive"] else "red"
-            self.txt_display.insert(tk.END, f"   • Gamma Regime     : ")
-            self.txt_display.insert(tk.END, f"{g_btc_mode['regime']}\n", reg_tag)
-            self.txt_display.insert(tk.END, f"   • BTC Gamma Flip   : ")
-            self.txt_display.insert(tk.END, f"${g_btc_mode['gamma_flip']:,.2f}\n", "white_bold")
-            self.txt_display.insert(tk.END, "   • Major Walls BTC  : ")
-            self.txt_display.insert(tk.END, "Call: ", "dim")
-            self.txt_display.insert(tk.END, f"${g_btc_mode['call_wall']:,.2f}", "red")
-            self.txt_display.insert(tk.END, " │ ", "dim")
-            self.txt_display.insert(tk.END, "Put: ", "dim")
-            self.txt_display.insert(tk.END, f"${g_btc_mode['put_wall']:,.2f}\n", "green")
-            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc_mode['net_gex_m']:+.2f}M per 1% move\n")
-            self.txt_display.insert(tk.END, f"   • Capital Rotation : ")
-            self.txt_display.insert(tk.END, f"{g_btc_mode['flow_bias']}\n", "yellow")
-            self.txt_display.insert(tk.END, f"   • Hedging Trigger  : ")
-            self.txt_display.insert(tk.END, f"Jika BTC < ${g_btc_mode['hedging_trigger']:,.2f}\n", "red")
+            # 1. BTCUSD (Binance Cloud Mirror)
+            self.txt_display.insert(tk.END, f"1. BTCUSD (Binance Cloud Mirror: ${btc_px:,.2f})\n", "title")
+            reg_tag = "green" if g_btc_native["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • 24H Change       : {btc_chg:+.2f}% │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_btc_native['regime']}\n", reg_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_btc_native['call_wall']:,.2f} (Vol: ${g_btc_native['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_btc_native['gamma_flip']:,.2f} (Vol: ${g_btc_native['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_btc_native['put_wall']:,.2f} (Vol: ${g_btc_native['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc_native['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 2. XAUTUSDT (OKX Market REST - Skala BTCUSD)
+            self.txt_display.insert(tk.END, f"2. XAUTUSDT (OKX Market REST: ${xaut_px:,.2f})\n", "title")
+            xaut_tag = "green" if g_btc_xaut["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Rasio XAUT/BTC   : {g_btc_xaut['ratio_xaut_per_btc']:.2f}x │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_btc_xaut['regime']}\n", xaut_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_btc_xaut['call_wall']:,.2f} (Vol: ${g_btc_xaut['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_btc_xaut['gamma_flip']:,.2f} (Vol: ${g_btc_xaut['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_btc_xaut['put_wall']:,.2f} (Vol: ${g_btc_xaut['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc_xaut['net_gex_m']:+.2f}M │ Rotasi: {g_btc_xaut['flow_bias']}\n\n")
+
+            # 3. GOLD FUTURES (Yahoo GC=F / CME Ref - Skala BTCUSD)
+            self.txt_display.insert(tk.END, f"3. GOLD FUTURES (Yahoo GC=F / CME Ref: ${comex_px:,.2f})\n", "title")
+            gold_tag = "green" if g_btc_gold["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Macro Gold Parity: {g_btc_gold['macro_ratio']:.2f}x │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_btc_gold['regime']}\n", gold_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_btc_gold['call_wall']:,.2f} (Vol: ${g_btc_gold['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_btc_gold['gamma_flip']:,.2f} (Vol: ${g_btc_gold['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_btc_gold['put_wall']:,.2f} (Vol: ${g_btc_gold['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc_gold['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 4. TABEL RISET PERBANDINGAN TIGA PILAR (SKALA BTCUSD)
+            self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
+            self.txt_display.insert(tk.END, "[RISET PERBANDINGAN WALLS & FLIP - SKALA BTCUSD]\n", "white_bold")
+            tbl_hdr = f"{'INSTRUMEN':<13} │ {'CALL WALL (VOL)':<22} │ {'GAMMA FLIP (VOL)':<22} │ {'PUT WALL (VOL)'}\n"
+            self.txt_display.insert(tk.END, tbl_hdr, "title")
+            self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
+
+            for name, g in [("1. BTC/USDT", g_btc_native), ("2. XAUT/USDT", g_btc_xaut), ("3. GC=F GOLD", g_btc_gold)]:
+                c_str = f"${g['call_wall']:,.2f} (${g['call_wall_vol_m']:.1f}M)"
+                f_str = f"${g['gamma_flip']:,.2f} (${g['gamma_flip_vol_m']:.1f}M)"
+                p_str = f"${g['put_wall']:,.2f} (${g['put_wall_vol_m']:.1f}M)"
+                self.txt_display.insert(tk.END, f"{name:<13} │ ")
+                self.txt_display.insert(tk.END, f"{c_str:<22}", "red")
+                self.txt_display.insert(tk.END, " │ ")
+                self.txt_display.insert(tk.END, f"{f_str:<22}", "white_bold")
+                self.txt_display.insert(tk.END, " │ ")
+                self.txt_display.insert(tk.END, f"{p_str}\n", "green")
 
         elif self.current_mode == "XAUTUSDT":
             # --- MODE 3: XAUTUSDT ---
             chg_arrow = "▲" if xaut_chg >= 0 else "▼"
-            self.lbl_spot_title.configure(text=">> MODE: XAUTUSDT")
+            self.lbl_spot_title.configure(text=">> MODE: XAUTUSDT (OKX MARKET REST)")
             self.lbl_spot_detail.configure(
                 text=f"Spot: ${xaut_px:,.2f}  │  24H Change: {xaut_chg:+.2f}% {chg_arrow}"
             )
 
-            g_xaut_mode = gex_engine.compute_mode_xautusdt_custom_gex(xaut_px, xaut_chg, btc_px, btc_chg)
+            g_xaut_native = gex_engine.compute_mode_xautusdt_native_gex(xaut_px, xaut_chg, xau_spot)
+            g_xaut_btc = gex_engine.compute_mode_xautusdt_via_btcusd(xaut_px, xaut_chg, btc_px, btc_chg)
+            g_xaut_gold = gex_engine.compute_mode_xautusdt_via_gold(xaut_px, comex_px, comex_chg)
 
-            self.txt_display.insert(tk.END, "1. BTCUSD\n", "title")
-            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_xaut_mode['btc_price']:,.2f} ({g_xaut_mode['btc_chg_pct']:+.2f}%)\n")
-            reg_tag = "green" if g_xaut_mode["is_positive"] else "red"
-            self.txt_display.insert(tk.END, f"   • Gamma Regime     : ")
-            self.txt_display.insert(tk.END, f"{g_xaut_mode['regime']}\n", reg_tag)
-            self.txt_display.insert(tk.END, f"   • XAUT Gamma Flip  : ")
-            self.txt_display.insert(tk.END, f"${g_xaut_mode['gamma_flip']:,.2f}\n", "white_bold")
-            self.txt_display.insert(tk.END, "   • Major Walls XAUT : ")
-            self.txt_display.insert(tk.END, "Call: ", "dim")
-            self.txt_display.insert(tk.END, f"${g_xaut_mode['call_wall']:,.2f}", "red")
-            self.txt_display.insert(tk.END, " │ ", "dim")
-            self.txt_display.insert(tk.END, "Put: ", "dim")
-            self.txt_display.insert(tk.END, f"${g_xaut_mode['put_wall']:,.2f}\n", "green")
-            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut_mode['net_gex_m']:+.2f}M per 1% move\n")
-            self.txt_display.insert(tk.END, f"   • Volatility State : {g_xaut_mode['vol_state']}\n")
-            self.txt_display.insert(tk.END, f"   • Rotational Bias  : ")
-            self.txt_display.insert(tk.END, f"{g_xaut_mode['rotational_bias']}\n", "green")
+            # 1. XAUTUSDT (OKX Market REST)
+            self.txt_display.insert(tk.END, f"1. XAUTUSDT (OKX Market REST: ${xaut_px:,.2f})\n", "title")
+            xaut_tag = "green" if g_xaut_native["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Spread vs Spot   : ${g_xaut_native['basis_spread']:+.2f} ({g_xaut_native['pct_spread']:+.2f}%) │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_xaut_native['regime']}\n", xaut_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_native['call_wall']:,.2f} (Vol: ${g_xaut_native['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_native['gamma_flip']:,.2f} (Vol: ${g_xaut_native['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_native['put_wall']:,.2f} (Vol: ${g_xaut_native['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut_native['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 2. BTCUSD (Binance Cloud Mirror - Skala XAUTUSDT)
+            self.txt_display.insert(tk.END, f"2. BTCUSD (Binance Cloud Mirror: ${btc_px:,.2f})\n", "title")
+            btc_tag = "green" if g_xaut_btc["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Vol State / Bias : {g_xaut_btc['vol_state']} │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_xaut_btc['regime']}\n", btc_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_btc['call_wall']:,.2f} (Vol: ${g_xaut_btc['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_btc['gamma_flip']:,.2f} (Vol: ${g_xaut_btc['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_btc['put_wall']:,.2f} (Vol: ${g_xaut_btc['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut_btc['net_gex_m']:+.2f}M │ Rotasi: {g_xaut_btc['rotational_bias']}\n\n")
+
+            # 3. GOLD FUTURES (Yahoo GC=F / CME Ref - Skala XAUTUSDT)
+            self.txt_display.insert(tk.END, f"3. GOLD FUTURES (Yahoo GC=F / CME Ref: ${comex_px:,.2f})\n", "title")
+            gold_tag = "green" if g_xaut_gold["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • Futures Basis    : ${g_xaut_gold['basis_spread']:+.2f} │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_xaut_gold['regime']}\n", gold_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_gold['call_wall']:,.2f} (Vol: ${g_xaut_gold['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_gold['gamma_flip']:,.2f} (Vol: ${g_xaut_gold['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_xaut_gold['put_wall']:,.2f} (Vol: ${g_xaut_gold['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut_gold['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 4. TABEL RISET PERBANDINGAN TIGA PILAR (SKALA XAUTUSDT)
+            self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
+            self.txt_display.insert(tk.END, "[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUTUSDT]\n", "white_bold")
+            tbl_hdr = f"{'INSTRUMEN':<13} │ {'CALL WALL (VOL)':<22} │ {'GAMMA FLIP (VOL)':<22} │ {'PUT WALL (VOL)'}\n"
+            self.txt_display.insert(tk.END, tbl_hdr, "title")
+            self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
+
+            for name, g in [("1. XAUT/USDT", g_xaut_native), ("2. BTC/USDT", g_xaut_btc), ("3. GC=F GOLD", g_xaut_gold)]:
+                c_str = f"${g['call_wall']:,.2f} (${g['call_wall_vol_m']:.1f}M)"
+                f_str = f"${g['gamma_flip']:,.2f} (${g['gamma_flip_vol_m']:.1f}M)"
+                p_str = f"${g['put_wall']:,.2f} (${g['put_wall_vol_m']:.1f}M)"
+                self.txt_display.insert(tk.END, f"{name:<13} │ ")
+                self.txt_display.insert(tk.END, f"{c_str:<22}", "red")
+                self.txt_display.insert(tk.END, " │ ")
+                self.txt_display.insert(tk.END, f"{f_str:<22}", "white_bold")
+                self.txt_display.insert(tk.END, " │ ")
+                self.txt_display.insert(tk.END, f"{p_str}\n", "green")
 
         self.txt_display.configure(state=tk.DISABLED)
 

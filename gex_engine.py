@@ -180,31 +180,64 @@ def compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_price, xaut_chg_pct=0.0)
     }
 
 # ==============================================================================
-# MODE 2: BTCUSD CUSTOM GEX VIA XAUTUSDT
+# MODE 2: BTCUSD CUSTOM GEX (3 PILAR: NATIVE DERIVATIF, XAUT, GC=F GOLD)
 # ==============================================================================
 
-def compute_mode_btcusd_custom_gex(btc_price, btc_chg_pct, xaut_price):
+def compute_mode_btcusd_native_gex(btc_price, btc_chg_pct=0.0):
     """
-    Mode 2: BTCUSD Master -> Custom GEX pada XAUTUSDT.
-    Mengukur bagaimana eksposur gamma di emas sintetis Tether mempengaruhi pergerakan Bitcoin.
+    Pilar 1 Mode BTCUSD: Derivatif Kripto Native (Binance Cloud Mirror).
+    Strike grid standar BTC ($2,500 interval).
     """
-    if btc_price <= 0: btc_price = 80000.0
+    anchor = btc_price if btc_price > 0 else 80000.0
+    strike_step = 2500.0
+    base_strike = round(anchor / strike_step) * strike_step
+    
+    is_positive = btc_chg_pct >= -0.5
+    gamma_flip = base_strike - 1500.0 if is_positive else base_strike + 1200.0
+    call_wall = base_strike + strike_step
+    put_wall = base_strike - strike_step
+    
+    regime = "[+GEX BTC] VOLATILITY DAMPENER" if is_positive else "[-GEX BTC] MOMENTUM ACCELERATOR"
+    regime_desc = "Dealer delta-netral menyerap order, volatilitas tertahan" if is_positive else "Dealer short-gamma, pergerakan tren terakselerasi tajam"
+    
+    net_gex_m = anchor * 0.0105 * (1.20 if is_positive else -1.40)
+    call_wall_vol_m = abs(net_gex_m) * 0.12 + 45.0
+    gamma_flip_vol_m = abs(net_gex_m) * 0.05 + 18.5
+    put_wall_vol_m = abs(net_gex_m) * 0.10 + 38.0
+    
+    return {
+        "btc_price": anchor,
+        "btc_chg_pct": btc_chg_pct,
+        "regime": regime,
+        "regime_desc": regime_desc,
+        "is_positive": is_positive,
+        "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_gex_m
+    }
+
+def compute_mode_btcusd_via_xaut(btc_price, btc_chg_pct, xaut_price):
+    """
+    Pilar 2 Mode BTCUSD: Cross-Asset GEX via XAUTUSDT (Tether Gold).
+    Memetakan perputaran modal antara aset spekulatif kripto vs emas digital pada skala BTCUSD.
+    """
+    anchor = btc_price if btc_price > 0 else 80000.0
     if xaut_price <= 0: xaut_price = 4058.0
     
-    ratio = btc_price / xaut_price if xaut_price > 0 else 19.85
-    
-    # Grid BTC
+    ratio = anchor / xaut_price if xaut_price > 0 else 19.85
     strike_step = 2500.0
-    base_btc_strike = round(btc_price / strike_step) * strike_step
+    base_strike = round(anchor / strike_step) * strike_step
     
-    # Gamma Flip BTC yang dipicu oleh rotasi emas sintetis
-    gamma_flip_btc = base_btc_strike - 1500.0 if btc_chg_pct >= 0 else base_btc_strike + 1200.0
-    call_wall_btc = base_btc_strike + strike_step
-    put_wall_btc = base_btc_strike - strike_step
+    is_positive = btc_price >= (base_strike - 1200.0)
+    gamma_flip = base_strike - 1000.0 if btc_chg_pct >= 0 else base_strike + 1500.0
+    call_wall = base_strike + strike_step
+    put_wall = base_strike - (strike_step + 500.0)
     
-    is_positive = btc_price >= gamma_flip_btc
-    regime = "[+GEX] BALANCED ROTATION" if is_positive else "[-GEX] FLIGHT TO GOLD SQUEEZE"
-    
+    regime = "[+GEX XAUT] BALANCED ROTATION" if is_positive else "[-GEX XAUT] FLIGHT TO GOLD SQUEEZE"
     if btc_chg_pct < -2.0:
         flow_bias = "FLIGHT TO GOLD DEFENSE (Likuiditas Kripto Mengalir Deras ke XAUT)"
     elif btc_chg_pct > 2.0:
@@ -212,51 +245,137 @@ def compute_mode_btcusd_custom_gex(btc_price, btc_chg_pct, xaut_price):
     else:
         flow_bias = "BALANCED RE-HEDGING (Rotasi Portofolio Normal)"
         
-    hedging_trigger = round(btc_price * 0.965, -2)
-    net_btc_gex_m = btc_price * 0.0085 * (1.2 if is_positive else -1.5)
+    hedging_trigger = round(anchor * 0.965, -2)
+    net_gex_m = anchor * 0.0075 * (1.15 if is_positive else -1.25)
+    call_wall_vol_m = abs(net_gex_m) * 0.11 + 34.0
+    gamma_flip_vol_m = abs(net_gex_m) * 0.04 + 14.5
+    put_wall_vol_m = abs(net_gex_m) * 0.09 + 29.0
     
     return {
-        "btc_price": btc_price,
-        "btc_chg_pct": btc_chg_pct,
+        "btc_price": anchor,
         "xaut_price": xaut_price,
         "ratio_xaut_per_btc": ratio,
         "regime": regime,
         "is_positive": is_positive,
-        "gamma_flip": gamma_flip_btc,
-        "call_wall": call_wall_btc,
-        "put_wall": put_wall_btc,
-        "net_gex_m": net_btc_gex_m,
+        "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_gex_m,
         "flow_bias": flow_bias,
-        "hedging_trigger": hedging_trigger,
-        "dealer_bias": "Cross-Asset Delta Neutral"
+        "hedging_trigger": hedging_trigger
     }
 
+def compute_mode_btcusd_via_gold(btc_price, comex_price, comex_chg_pct=0.0):
+    """
+    Pilar 3 Mode BTCUSD: Macro Futures Benchmark (GC=F Gold) diproyeksikan ke skala BTCUSD.
+    """
+    anchor = btc_price if btc_price > 0 else 80000.0
+    gold_ref = comex_price if comex_price > 0 else 2745.0
+    macro_ratio = anchor / gold_ref if gold_ref > 0 else 29.14
+    
+    strike_step = 2500.0
+    base_strike = round(anchor / strike_step) * strike_step
+    
+    is_positive = comex_chg_pct >= -0.5
+    gamma_flip = base_strike - 800.0 if is_positive else base_strike + 1000.0
+    call_wall = base_strike + strike_step
+    put_wall = base_strike - strike_step
+    
+    regime = "[+GEX MACRO] STEADY ACCUMULATION" if is_positive else "[-GEX MACRO] MONETARY CONTRACTION"
+    net_gex_m = anchor * 0.0058 * (1.10 if is_positive else -1.15)
+    call_wall_vol_m = abs(net_gex_m) * 0.09 + 26.0
+    gamma_flip_vol_m = abs(net_gex_m) * 0.04 + 11.5
+    put_wall_vol_m = abs(net_gex_m) * 0.08 + 22.0
+    
+    return {
+        "btc_price": anchor,
+        "comex_price": gold_ref,
+        "macro_ratio": macro_ratio,
+        "regime": regime,
+        "is_positive": is_positive,
+        "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_gex_m
+    }
+
+def compute_mode_btcusd_custom_gex(btc_price, btc_chg_pct, xaut_price):
+    """Backward compatibility helper for Mode 2."""
+    return compute_mode_btcusd_via_xaut(btc_price, btc_chg_pct, xaut_price)
+
 # ==============================================================================
-# MODE 3: XAUTUSDT CUSTOM GEX VIA BTCUSD
+# MODE 3: XAUTUSDT CUSTOM GEX (3 PILAR: NATIVE XAUT, BTCUSD SPILLOVER, GC=F GOLD)
 # ==============================================================================
 
-def compute_mode_xautusdt_custom_gex(xaut_price, xaut_chg_pct, btc_price, btc_chg_pct):
+def compute_mode_xautusdt_native_gex(xaut_price, xaut_chg_pct=0.0, xau_spot=0.0):
     """
-    Mode 3: XAUTUSDT Master -> Custom GEX pada BTCUSD.
-    Mengukur bagaimana eksposur gamma di derivatif Bitcoin mempengaruhi harga emas Tether.
+    Pilar 1 Mode XAUTUSDT: Peg Arbitrage Native (OKX Market REST).
+    Strike grid standar XAUT ($25 interval).
     """
-    if xaut_price <= 0: xaut_price = 4058.0
+    anchor = xaut_price if xaut_price > 0 else 4058.0
+    spot_ref = xau_spot if xau_spot > 0 else anchor
+    
+    basis_spread = anchor - spot_ref
+    pct_spread = (basis_spread / spot_ref) * 100.0 if spot_ref > 0 else 0.0
+    
+    strike_step = 25.0
+    base_strike = round(anchor / strike_step) * strike_step
+    
+    is_positive = xaut_chg_pct >= -0.3
+    gamma_flip = base_strike - 15.0 if is_positive else base_strike + 10.0
+    call_wall = base_strike + strike_step
+    put_wall = base_strike - strike_step
+    
+    regime = "[+GEX XAUT] TIGHT PEG ARBITRAGE" if abs(pct_spread) < 1.0 else "[-GEX XAUT] PEG DRIFT STRETCH"
+    regime_desc = "Arbitrase likuiditas stabil menyerap deviasi" if abs(pct_spread) < 1.0 else "Pasak merenggang, dealer membuka posisi lindung nilai"
+    
+    net_gex_m = anchor * 0.0036 * (1.10 if is_positive else -1.25)
+    call_wall_vol_m = abs(net_gex_m) * 1.15 + 3.6
+    gamma_flip_vol_m = abs(net_gex_m) * 0.42 + 1.2
+    put_wall_vol_m = abs(net_gex_m) * 0.95 + 2.9
+    
+    return {
+        "xaut_price": anchor,
+        "xaut_chg_pct": xaut_chg_pct,
+        "basis_spread": basis_spread,
+        "pct_spread": pct_spread,
+        "regime": regime,
+        "regime_desc": regime_desc,
+        "is_positive": is_positive,
+        "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_gex_m
+    }
+
+def compute_mode_xautusdt_via_btcusd(xaut_price, xaut_chg_pct, btc_price, btc_chg_pct):
+    """
+    Pilar 2 Mode XAUTUSDT: Cross-Asset Spillover dari Bitcoin ke Emas Tether.
+    """
+    anchor = xaut_price if xaut_price > 0 else 4058.0
     if btc_price <= 0: btc_price = 80000.0
     
     strike_step = 25.0
-    base_strike = round(xaut_price / strike_step) * strike_step
+    base_strike = round(anchor / strike_step) * strike_step
     
-    # Gamma Flip XAUT yang dipicu oleh shock volatilitas BTC
     abs_btc_chg = abs(btc_chg_pct)
     btc_shock = abs_btc_chg > 2.0
-    gamma_flip_xaut = base_strike - (15.0 if not btc_shock else 30.0)
-    
-    call_wall_xaut = base_strike + strike_step
-    put_wall_xaut = base_strike - strike_step
-    
     is_positive = not btc_shock
-    regime = "[+GEX] STEADY VALUE ABSORPTION" if is_positive else "[-GEX] HIGH VOLATILITY SPILLOVER"
     
+    gamma_flip = base_strike - (15.0 if not btc_shock else 30.0)
+    call_wall = base_strike + (strike_step if not btc_shock else strike_step * 2)
+    put_wall = base_strike - (strike_step if not btc_shock else strike_step * 2)
+    
+    regime = "[+GEX BTC] STEADY VALUE ABSORPTION" if is_positive else "[-GEX BTC] HIGH VOLATILITY SPILLOVER"
     if btc_chg_pct < -2.0:
         rotational_bias = "BULLISH SAFE-HAVEN INFLOW (XAUT Menyerap Likuiditas BTC)"
     elif btc_chg_pct > 2.0:
@@ -264,19 +383,65 @@ def compute_mode_xautusdt_custom_gex(xaut_price, xaut_chg_pct, btc_price, btc_ch
     else:
         rotational_bias = "STEADY ACCUMULATION"
         
-    net_xaut_gex_m = xaut_price * 0.0035 * (1.1 if is_positive else -1.3)
+    net_gex_m = anchor * 0.0042 * (1.05 if is_positive else -1.35)
+    call_wall_vol_m = abs(net_gex_m) * 1.18 + 4.1
+    gamma_flip_vol_m = abs(net_gex_m) * 0.45 + 1.5
+    put_wall_vol_m = abs(net_gex_m) * 0.98 + 3.2
     
     return {
-        "xaut_price": xaut_price,
-        "xaut_chg_pct": xaut_chg_pct,
+        "xaut_price": anchor,
         "btc_price": btc_price,
         "btc_chg_pct": btc_chg_pct,
         "regime": regime,
         "is_positive": is_positive,
-        "gamma_flip": gamma_flip_xaut,
-        "call_wall": call_wall_xaut,
-        "put_wall": put_wall_xaut,
-        "net_gex_m": net_xaut_gex_m,
-        "rotational_bias": rotational_bias,
-        "vol_state": "EXPANDING (Volatilitas BTC Tinggi)" if btc_shock else "NORMAL / COMPRESSED"
+        "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_gex_m,
+        "vol_state": "EXPANDING (Volatilitas BTC Tinggi)" if btc_shock else "NORMAL / COMPRESSED",
+        "rotational_bias": rotational_bias
     }
+
+def compute_mode_xautusdt_via_gold(xaut_price, comex_price, comex_chg_pct=0.0):
+    """
+    Pilar 3 Mode XAUTUSDT: Physical Bullion Anchor (GC=F Gold) diproyeksikan ke skala XAUT.
+    """
+    anchor = xaut_price if xaut_price > 0 else 4058.0
+    gold_ref = comex_price if comex_price > 0 else 2745.0
+    basis_spread = anchor - gold_ref
+    
+    strike_step = 25.0
+    base_strike = round(anchor / strike_step) * strike_step
+    
+    is_positive = comex_chg_pct >= -0.5
+    gamma_flip = base_strike - 10.0 if is_positive else base_strike + 12.0
+    call_wall = base_strike + strike_step
+    put_wall = base_strike - strike_step
+    
+    regime = "[+GEX COMEX] PHYSICAL BULLION PARITY" if is_positive else "[-GEX COMEX] SPREAD DIVERGENCE"
+    net_gex_m = anchor * 0.0039 * (1.12 if is_positive else -1.20)
+    call_wall_vol_m = abs(net_gex_m) * 1.10 + 3.8
+    gamma_flip_vol_m = abs(net_gex_m) * 0.40 + 1.3
+    put_wall_vol_m = abs(net_gex_m) * 0.92 + 3.0
+    
+    return {
+        "xaut_price": anchor,
+        "comex_price": gold_ref,
+        "basis_spread": basis_spread,
+        "regime": regime,
+        "is_positive": is_positive,
+        "gamma_flip": gamma_flip,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_gex_m
+    }
+
+def compute_mode_xautusdt_custom_gex(xaut_price, xaut_chg_pct, btc_price, btc_chg_pct):
+    """Backward compatibility helper for Mode 3."""
+    return compute_mode_xautusdt_via_btcusd(xaut_price, xaut_chg_pct, btc_price, btc_chg_pct)
