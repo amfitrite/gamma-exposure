@@ -55,9 +55,15 @@ Menganalisis eksposur gamma dari 3 pilar:
    * Mengukur rotasi portofolio pasar kripto (*Digital Gold vs Tether Gold*).
    * Memantau korelasi delta-gamma dealer kripto saat terjadi pergerakan ekstrem di pasar Bitcoin.
 
-### C. Mode 3: BTCUSD (Bitcoin)
-1. **GEX pada XAUTUSDT**:
-   * Mengukur *safe-haven flight* di dalam ekosistem kripto saat BTC menembus level Gamma Flip negatif (Short Gamma).
+### D. Kontrol Antarmuka Ultra-Minimalis
+Satu-satunya elemen interaktif pada antarmuka pengguna adalah **pemilih 3 mode**:
+* `[ XAUUSD ]` : Menampilkan harga live tick MT5 + GEX COMEX, GEX BTCUSD, GEX XAUTUSDT.
+* `[ BTCUSD ]` : Menampilkan harga live BTC + GEX XAUTUSDT.
+* `[ XAUTUSDT ]`: Menampilkan harga live XAUT + GEX BTCUSD.
+
+Tidak ada tombol setting, slider, atau panel lain. Pergantian mode dapat dilakukan dengan:
+* **Klik Mouse Langsung** pada tab teks mode `[XAUUSD]`, `[BTCUSD]`, atau `[XAUTUSDT]`.
+* **Pintasan Keyboard Cepat**: Tombol angka `1`, `2`, atau `3` (atau tombol panah kiri/kanan).
 
 ---
 
