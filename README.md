@@ -87,26 +87,33 @@ Satu-satunya elemen kontrol pada layar adalah **tombol pemilih 3 mode**: `[ XAUU
 Spot: $4,076.80 │ Bid: $4,076.65 │ Ask: $4,076.95 │ Spread: $0.30 │ Vol: 1.00
 ------------------------------------------------------------------------------------
 1. COMEX
-   • Basis vs Futures : +$0.00
-   • Gamma Regime     : [+GEX POSITIVE] LONG GAMMA
+   • Basis vs Futures : +$0.00 │ Regime: [+GEX POSITIVE] LONG GAMMA
    • Gamma Flip Level : $4,065.00
-   • Major Call Wall  : $4,100.00
-   • Major Put Wall   : $4,025.00
+   • Call Wall        : $4,100.00
+   • Put Wall         : $4,025.00
    • Net Dollar GEX   : +$26.50M per 1% move
 
 2. BTCUSD
-   • BTC Spot Price   : $80,691.85 (+0.56%) │ Rasio: 19.79x
-   • BTC Gamma Status : [+GEX BTC] VOLATILITY DAMPENER
-   • BTC Gamma Flip   : $4,045.22
-   • Strike Walls XAU : Call: $4,140.00 │ Put: $4,010.00
-   • Net BTC GEX Flow : +$17.04M
+   • BTC Spot Price   : $80,691.85 (+0.56%) │ Regime: [+GEX BTC] VOLATILITY DAMPENER
+   • Gamma Flip Level : $4,045.22
+   • Call Wall        : $4,140.00
+   • Put Wall         : $4,010.00
+   • Net Dollar GEX   : +$17.04M per 1% move
 
 3. XAUTUSDT
-   • XAUT Spot Price  : $4,062.60 │ Spread: $-14.20 (-0.35%)
-   • Peg Gamma Status : [+GEX XAUT] TIGHT PEG ARBITRAGE
-   • Peg Gamma Flip   : $4,069.70 │ Pasak: 99.8%
-   • Arbitrage Walls  : Call: $4,098.10 │ Put: $4,055.50
-   • Net XAUT GEX     : +$10.19M per 1% move
+   • XAUT Spot Price  : $4,062.60 (Spread: $-14.20) │ Regime: [+GEX XAUT] TIGHT PEG
+   • Gamma Flip Level : $4,069.70
+   • Call Wall        : $4,098.10
+   • Put Wall         : $4,055.50
+   • Net Dollar GEX   : +$10.19M per 1% move
+
+──────────────────────────────────────────────────────────────────────────────────
+[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]
+INSTRUMEN     │ GAMMA FLIP    │ CALL WALL     │ PUT WALL      │ NET GEX
+──────────────┼───────────────┼───────────────┼───────────────┼───────────────────
+1. COMEX      │ $4,065.00     │ $4,100.00     │ $4,025.00     │ +$26.50M
+2. BTCUSD     │ $4,045.22     │ $4,140.00     │ $4,010.00     │ +$17.04M
+3. XAUTUSDT   │ $4,069.70     │ $4,098.10     │ $4,055.50     │ +$10.19M
 ====================================================================================
 ```
 

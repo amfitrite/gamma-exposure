@@ -55,7 +55,7 @@ class GEXTerminalHUD:
         
         # Dimensi Jendela
         self.win_width = 820
-        self.win_height = 540
+        self.win_height = 620
         
         # Posisikan tepat di tengah layar
         screen_w = self.root.winfo_screenwidth()
@@ -392,38 +392,51 @@ class GEXTerminalHUD:
             # 1. COMEX
             self.txt_display.insert(tk.END, "1. COMEX\n", "title")
             basis_str = f"{g_comex['basis_spread']:+.2f}"
-            self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str}\n")
-            
             regime_tag = "green" if g_comex["is_positive"] else "red"
-            self.txt_display.insert(tk.END, f"   • Gamma Regime     : ")
+            self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str} │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_comex['regime']}\n", regime_tag)
             self.txt_display.insert(tk.END, f"   • Gamma Flip Level : ")
             self.txt_display.insert(tk.END, f"${g_comex['gamma_flip']:,.2f}\n", "yellow")
-            self.txt_display.insert(tk.END, f"   • Major Call Wall  : ${g_comex['call_wall']:,.2f}\n")
-            self.txt_display.insert(tk.END, f"   • Major Put Wall   : ${g_comex['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Call Wall        : ${g_comex['call_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Put Wall         : ${g_comex['put_wall']:,.2f}\n")
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_comex['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 2. BTCUSD
             self.txt_display.insert(tk.END, "2. BTCUSD\n", "title")
-            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_btc['btc_price']:,.2f} ({g_btc['btc_chg_pct']:+.2f}%) │ Rasio: {g_btc['ratio_btc_to_xau']:.2f}x\n")
             btc_tag = "green" if g_btc["is_positive"] else "red"
-            self.txt_display.insert(tk.END, f"   • BTC Gamma Status : ")
+            self.txt_display.insert(tk.END, f"   • BTC Spot Price   : ${g_btc['btc_price']:,.2f} ({g_btc['btc_chg_pct']:+.2f}%) │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_btc['regime']}\n", btc_tag)
-            self.txt_display.insert(tk.END, f"   • BTC Gamma Flip   : ")
+            self.txt_display.insert(tk.END, f"   • Gamma Flip Level : ")
             self.txt_display.insert(tk.END, f"${g_btc['gamma_flip']:,.2f}\n", "yellow")
-            self.txt_display.insert(tk.END, f"   • Strike Walls XAU : Call: ${g_btc['call_wall']:,.2f} │ Put: ${g_btc['put_wall']:,.2f}\n")
-            self.txt_display.insert(tk.END, f"   • Net BTC GEX Flow : ${g_btc['net_gex_m']:+.2f}M │ {g_btc['spillover_risk']}\n\n")
+            self.txt_display.insert(tk.END, f"   • Call Wall        : ${g_btc['call_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Put Wall         : ${g_btc['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 3. XAUTUSDT
             self.txt_display.insert(tk.END, "3. XAUTUSDT\n", "title")
-            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_xaut['xaut_price']:,.2f} │ Spread: ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%)\n")
             xaut_tag = "green" if g_xaut["is_positive"] else "red"
-            self.txt_display.insert(tk.END, f"   • Peg Gamma Status : ")
+            self.txt_display.insert(tk.END, f"   • XAUT Spot Price  : ${g_xaut['xaut_price']:,.2f} (Spread: ${g_xaut['basis_spread']:+.2f}) │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_xaut['regime']}\n", xaut_tag)
-            self.txt_display.insert(tk.END, f"   • Peg Gamma Flip   : ")
-            self.txt_display.insert(tk.END, f"${g_xaut['gamma_flip']:,.2f} │ Pasak: {g_xaut['peg_stability']}\n", "yellow")
-            self.txt_display.insert(tk.END, f"   • Arbitrage Walls  : Call: ${g_xaut['call_wall']:,.2f} │ Put: ${g_xaut['put_wall']:,.2f}\n")
-            self.txt_display.insert(tk.END, f"   • Net XAUT GEX     : ${g_xaut['net_gex_m']:+.2f}M per 1% move\n")
+            self.txt_display.insert(tk.END, f"   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_xaut['gamma_flip']:,.2f}\n", "yellow")
+            self.txt_display.insert(tk.END, f"   • Call Wall        : ${g_xaut['call_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Put Wall         : ${g_xaut['put_wall']:,.2f}\n")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 4. TABEL RISET PERBANDINGAN TIGA PILAR (SKALA XAUUSD)
+            self.txt_display.insert(tk.END, "─" * 78 + "\n", "dim")
+            self.txt_display.insert(tk.END, "[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]\n", "white_bold")
+            tbl_hdr = f"{'INSTRUMEN':<13} │ {'GAMMA FLIP':<13} │ {'CALL WALL':<13} │ {'PUT WALL':<13} │ {'NET GEX'}\n"
+            self.txt_display.insert(tk.END, tbl_hdr, "title")
+            self.txt_display.insert(tk.END, "─" * 78 + "\n", "dim")
+            
+            row1 = f"{'1. COMEX':<13} │ ${g_comex['gamma_flip']:<11,.2f} │ ${g_comex['call_wall']:<11,.2f} │ ${g_comex['put_wall']:<11,.2f} │ ${g_comex['net_gex_m']:+.2f}M\n"
+            row2 = f"{'2. BTCUSD':<13} │ ${g_btc['gamma_flip']:<11,.2f} │ ${g_btc['call_wall']:<11,.2f} │ ${g_btc['put_wall']:<11,.2f} │ ${g_btc['net_gex_m']:+.2f}M\n"
+            row3 = f"{'3. XAUTUSDT':<13} │ ${g_xaut['gamma_flip']:<11,.2f} │ ${g_xaut['call_wall']:<11,.2f} │ ${g_xaut['put_wall']:<11,.2f} │ ${g_xaut['net_gex_m']:+.2f}M\n"
+            
+            self.txt_display.insert(tk.END, row1)
+            self.txt_display.insert(tk.END, row2)
+            self.txt_display.insert(tk.END, row3)
 
         elif self.current_mode == "BTCUSD":
             # --- MODE 2: BTCUSD ---
