@@ -23,6 +23,7 @@ class MT5StreamListener:
         
         # State Data
         self.lock = threading.Lock()
+        self.active_clients = set()
         self.is_client_connected = False
         self.client_addr = None
         self.symbol = "XAUUSD"
@@ -71,7 +72,7 @@ class MT5StreamListener:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 s.bind((self.host, p))
-                s.listen(1)
+                s.listen(5)
                 s.settimeout(1.0)
                 self.server_sock = s
                 self.bound_port = p
@@ -88,11 +89,10 @@ class MT5StreamListener:
         while self.is_running:
             try:
                 client, addr = self.server_sock.accept()
-                self.client_sock = client
+                client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 self.client_addr = addr
-                with self.lock:
-                    self.is_client_connected = True
-                self._handle_client(client)
+                t = threading.Thread(target=self._handle_client, args=(client, addr), daemon=True)
+                t.start()
             except socket.timeout:
                 continue
             except Exception:
@@ -100,31 +100,38 @@ class MT5StreamListener:
                     break
                 time.sleep(0.5)
 
-    def _handle_client(self, client):
-        client.settimeout(2.0)
-        buffer = ""
-        while self.is_running:
-            try:
-                data = client.recv(4096)
-                if not data:
-                    break
-                buffer += data.decode("utf-8", errors="ignore")
-                while "\n" in buffer:
-                    line, buffer = buffer.split("\n", 1)
-                    line = line.strip()
-                    if line:
-                        self._parse_line(line)
-            except socket.timeout:
-                continue
-            except Exception:
-                break
-
+    def _handle_client(self, client, addr):
         with self.lock:
-            self.is_client_connected = False
+            self.active_clients.add(client)
+            self.is_client_connected = True
+
+        client.settimeout(5.0)
+        buffer = ""
         try:
-            client.close()
-        except Exception:
-            pass
+            while self.is_running:
+                try:
+                    data = client.recv(16384)
+                    if not data:
+                        break
+                    buffer += data.decode("utf-8", errors="ignore")
+                    while "\n" in buffer:
+                        line, buffer = buffer.split("\n", 1)
+                        line = line.strip()
+                        if line:
+                            self._parse_line(line)
+                except socket.timeout:
+                    # Timeout normal jika belum ada tick baru masuk dari MT5
+                    continue
+                except Exception:
+                    break
+        finally:
+            with self.lock:
+                self.active_clients.discard(client)
+                self.is_client_connected = len(self.active_clients) > 0
+            try:
+                client.close()
+            except Exception:
+                pass
 
     def _parse_line(self, line):
         # 1. Parse Metadata / Handshake
@@ -176,7 +183,8 @@ class MT5StreamListener:
         """Ambil snapshot terkini status stream MT5 secara aman."""
         with self.lock:
             tick_copy = dict(self.last_tick)
-            is_conn = self.is_client_connected
+            has_recent_data = (tick_copy["count"] > 0 and (time.time() - tick_copy["received_at"]) < 15.0)
+            is_conn = (len(self.active_clients) > 0) or self.is_client_connected or has_recent_data
             sym = self.symbol
             dig = self.digits
             bp = self.bound_port or self.preferred_port
