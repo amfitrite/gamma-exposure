@@ -36,13 +36,15 @@ def get_proxy_status():
 def test_comex():
     url = "https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d"
     host = "query1.finance.yahoo.com"
-    curl_cmd = f'curl.exe -i "{url}"'
+    curl_cmd = f'curl.exe -i -H "User-Agent: Mozilla/5.0" "{url}"'
+    ps_cmd = f'(Invoke-RestMethod -Headers @{{"User-Agent"="Mozilla/5.0"}} -Uri "{url}").chart.result.meta'
     
     print("=" * 82)
     print("        [SCRAPPER 1] UJI KONEKTIVITAS COMEX GOLD (YAHOO FINANCE QUERY)")
     print("=" * 82)
     print(f"Target URL      : {url}")
-    print(f"Perintah Manual : {curl_cmd}")
+    print(f"Perintah cURL   : {curl_cmd}")
+    print(f"Perintah PS     : {ps_cmd}")
     print("-" * 82)
     print("MENGHUBUNGI SERVER UPSTREAM...")
     
