@@ -111,6 +111,9 @@ class GEXTerminalHUD:
         
         self.build_ui()
         
+        # 4. Aktifkan kehadiran di Taskbar Windows (dengan icon GEX 2D & Alt+Tab)
+        self.enable_taskbar_presence()
+
         # Jalankan Thread Pengambil Feed Pasar (COMEX, BTC, XAUT)
         self.crawler_thread = threading.Thread(target=self.bg_crawler_loop, daemon=True)
         self.crawler_thread.start()
@@ -149,16 +152,38 @@ class GEXTerminalHUD:
         
         btn_close = tk.Label(
             top_bar, 
-            text=" [ESC: Keluar] [X] ", 
-            font=self.font_mono_sm, 
+            text=" [X] ", 
+            font=self.font_mono_bold, 
             fg=self.c_text_dim, 
             bg=self.c_header_bg, 
             cursor="hand2"
         )
-        btn_close.pack(side=tk.RIGHT, padx=6)
+        btn_close.pack(side=tk.RIGHT, padx=(2, 8))
         btn_close.bind("<Button-1>", lambda e: self.close_app())
         btn_close.bind("<Enter>", lambda e: btn_close.configure(fg=self.c_red))
         btn_close.bind("<Leave>", lambda e: btn_close.configure(fg=self.c_text_dim))
+
+        btn_min = tk.Label(
+            top_bar, 
+            text=" [ _ ] ", 
+            font=self.font_mono_bold, 
+            fg=self.c_text_dim, 
+            bg=self.c_header_bg, 
+            cursor="hand2"
+        )
+        btn_min.pack(side=tk.RIGHT, padx=2)
+        btn_min.bind("<Button-1>", lambda e: self.minimize_app())
+        btn_min.bind("<Enter>", lambda e: btn_min.configure(fg=self.c_active_fg))
+        btn_min.bind("<Leave>", lambda e: btn_min.configure(fg=self.c_text_dim))
+
+        lbl_esc_hint = tk.Label(
+            top_bar, 
+            text="[ESC: Keluar]", 
+            font=self.font_mono_sm, 
+            fg=self.c_text_dim, 
+            bg=self.c_header_bg
+        )
+        lbl_esc_hint.pack(side=tk.RIGHT, padx=4)
 
         # 2. SATU-SATUNYA KONTROL: TOMBOL PEMILIH 3 MODE
         mode_bar = tk.Frame(self.container, bg=self.c_bg)
@@ -535,6 +560,68 @@ class GEXTerminalHUD:
                 subprocess.Popen(cmd, shell=True)
         except Exception as e:
             print(f"[GEX Terminal] Gagal membuka tester pop-up PowerShell: {e}")
+
+    def minimize_app(self):
+        """Meminimalisir jendela frameless langsung ke taskbar Windows."""
+        try:
+            import ctypes
+            hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+            if hwnd == 0:
+                hwnd = self.root.winfo_id()
+            ctypes.windll.user32.ShowWindow(hwnd, 6)  # SW_MINIMIZE
+        except Exception:
+            self.root.iconify()
+
+    def enable_taskbar_presence(self):
+        """Membuat jendela frameless tetap muncul di Windows Taskbar, Alt+Tab, dan berikon resmi GEX."""
+        if not sys.platform.startswith("win"):
+            return
+        try:
+            import ctypes
+            user32 = ctypes.windll.user32
+            shell32 = ctypes.windll.shell32
+
+            # Berikan AppUserModelID eksplisit agar taskbar menampilkan nama dan icon GEX
+            shell32.SetCurrentProcessExplicitAppUserModelID("amfitrite.gammaexposure.gex.1")
+
+            self.root.update_idletasks()
+            hwnd = user32.GetParent(self.root.winfo_id())
+            if hwnd == 0:
+                hwnd = self.root.winfo_id()
+
+            GWL_STYLE = -16
+            GWL_EXSTYLE = -20
+            WS_EX_APPWINDOW = 0x00040000
+            WS_EX_TOOLWINDOW = 0x00000080
+            WS_MINIMIZEBOX = 0x00020000
+            WS_SYSMENU = 0x00080000
+
+            # Pasang WS_EX_APPWINDOW (Memaksa window muncul di Taskbar)
+            ex_style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+            ex_style = (ex_style | WS_EX_APPWINDOW) & ~WS_EX_TOOLWINDOW
+            user32.SetWindowLongW(hwnd, GWL_EXSTYLE, ex_style)
+
+            # Tambahkan tombol minimize & menu sistem ke style
+            style = user32.GetWindowLongW(hwnd, GWL_STYLE)
+            style = style | WS_MINIMIZEBOX | WS_SYSMENU
+            user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+
+            # Pasang Icon ke Taskbar HWND secara langsung
+            ico_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
+            if os.path.exists(ico_path):
+                IMAGE_ICON = 1
+                LR_LOADFROMFILE = 0x00000010
+                LR_DEFAULTSIZE = 0x00000040
+                hicon = user32.LoadImageW(0, ico_path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE)
+                if hicon:
+                    user32.SendMessageW(hwnd, 0x0080, 1, hicon)  # ICON_BIG
+                    user32.SendMessageW(hwnd, 0x0080, 0, hicon)  # ICON_SMALL
+
+            # Refresh Windows Shell agar Taskbar langsung menampilkan ikonnya
+            self.root.withdraw()
+            self.root.after(10, self.root.deiconify)
+        except Exception:
+            pass
 
     def close_app(self):
         self.is_running = False
