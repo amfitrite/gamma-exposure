@@ -250,23 +250,53 @@ class GEXTerminalHUD:
         self.txt_display.tag_configure("yellow", font=self.font_mono_bold, foreground=self.c_yellow)
         self.txt_display.tag_configure("dim", font=self.font_mono_sm, foreground=self.c_text_dim)
         self.txt_display.tag_configure("white_bold", font=self.font_mono_bold, foreground=self.c_text_main)
+        self.txt_display.tag_configure("link_comex", font=self.font_mono_bold, foreground=self.c_yellow, underline=1)
+        self.txt_display.tag_configure("link_btc", font=self.font_mono_bold, foreground=self.c_yellow, underline=1)
+        self.txt_display.tag_configure("link_xaut", font=self.font_mono_bold, foreground=self.c_yellow, underline=1)
 
-        # 5. FOOTER (Status Scrapper Aktif + Klik untuk Pop-up Tester)
-        footer = tk.Frame(self.container, bg=self.c_header_bg, height=28)
+        self.txt_display.tag_bind("link_comex", "<Button-1>", lambda e: self.launch_scrapper_tester("1"))
+        self.txt_display.tag_bind("link_btc", "<Button-1>", lambda e: self.launch_scrapper_tester("2"))
+        self.txt_display.tag_bind("link_xaut", "<Button-1>", lambda e: self.launch_scrapper_tester("3"))
+        for tag in ["link_comex", "link_btc", "link_xaut"]:
+            self.txt_display.tag_bind(tag, "<Enter>", lambda e: self.txt_display.configure(cursor="hand2"))
+            self.txt_display.tag_bind(tag, "<Leave>", lambda e: self.txt_display.configure(cursor="arrow"))
+
+        # 5. FOOTER (Status Scrapper Aktif + 3 Tombol Test Mandiri)
+        footer = tk.Frame(self.container, bg=self.c_header_bg, height=30)
         footer.pack(fill=tk.X, side=tk.BOTTOM)
         
-        self.btn_scrapper_test = tk.Label(
+        lbl_scrapper_title = tk.Label(
             footer, 
-            text=" [*] SEMUA SCRAPPER AKTIF  |  KLIK UNTUK POP-UP TESTER (UJI SATU PER SATU) >>", 
+            text=" UJI SCRAPPER: ", 
             font=self.font_mono_bold, 
-            fg=self.c_green, 
-            bg=self.c_header_bg, 
-            cursor="hand2"
+            fg=self.c_text_dim, 
+            bg=self.c_header_bg
         )
-        self.btn_scrapper_test.pack(side=tk.LEFT, padx=10, pady=4)
-        self.btn_scrapper_test.bind("<Button-1>", lambda e: self.launch_scrapper_tester())
-        self.btn_scrapper_test.bind("<Enter>", lambda e: self.btn_scrapper_test.configure(fg=self.c_yellow))
-        self.btn_scrapper_test.bind("<Leave>", lambda e: self.btn_scrapper_test.configure(fg=self.c_green))
+        lbl_scrapper_title.pack(side=tk.LEFT, padx=(8, 2), pady=4)
+        
+        btn_test1 = tk.Label(
+            footer, text=" [1. COMEX] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+        )
+        btn_test1.pack(side=tk.LEFT, padx=3, pady=3)
+        btn_test1.bind("<Button-1>", lambda e: self.launch_scrapper_tester("1"))
+        btn_test1.bind("<Enter>", lambda e: btn_test1.configure(bg="#22334a", fg=self.c_yellow))
+        btn_test1.bind("<Leave>", lambda e: btn_test1.configure(bg="#1a2332", fg=self.c_green))
+
+        btn_test2 = tk.Label(
+            footer, text=" [2. BTCUSD] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+        )
+        btn_test2.pack(side=tk.LEFT, padx=3, pady=3)
+        btn_test2.bind("<Button-1>", lambda e: self.launch_scrapper_tester("2"))
+        btn_test2.bind("<Enter>", lambda e: btn_test2.configure(bg="#22334a", fg=self.c_yellow))
+        btn_test2.bind("<Leave>", lambda e: btn_test2.configure(bg="#1a2332", fg=self.c_green))
+
+        btn_test3 = tk.Label(
+            footer, text=" [3. XAUTUSDT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+        )
+        btn_test3.pack(side=tk.LEFT, padx=3, pady=3)
+        btn_test3.bind("<Button-1>", lambda e: self.launch_scrapper_tester("3"))
+        btn_test3.bind("<Enter>", lambda e: btn_test3.configure(bg="#22334a", fg=self.c_yellow))
+        btn_test3.bind("<Leave>", lambda e: btn_test3.configure(bg="#1a2332", fg=self.c_green))
         
         self.lbl_time = tk.Label(
             footer, 
@@ -394,7 +424,8 @@ class GEXTerminalHUD:
             g_xaut = gex_engine.compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_px, xaut_chg)
 
             # 1. COMEX
-            self.txt_display.insert(tk.END, f"1. COMEX (Futures: ${g_comex['comex_price']:,.2f})\n", "title")
+            self.txt_display.insert(tk.END, f"1. COMEX (Futures: ${g_comex['comex_price']:,.2f}) ", "title")
+            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST CMD] >>\n", "link_comex")
             basis_str = f"{g_comex['basis_spread']:+.2f}"
             regime_tag = "green" if g_comex["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str} │ Regime: ")
@@ -406,7 +437,8 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_comex['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 2. BTCUSD
-            self.txt_display.insert(tk.END, f"2. BTCUSD (Spot: ${g_btc['btc_price']:,.2f})\n", "title")
+            self.txt_display.insert(tk.END, f"2. BTCUSD (Spot: ${g_btc['btc_price']:,.2f}) ", "title")
+            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST CMD] >>\n", "link_btc")
             btc_tag = "green" if g_btc["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • 24H Change       : {g_btc['btc_chg_pct']:+.2f}% │ Rasio: {g_btc['ratio_btc_to_xau']:.2f}x │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_btc['regime']}\n", btc_tag)
@@ -417,7 +449,8 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 3. XAUTUSDT
-            self.txt_display.insert(tk.END, f"3. XAUTUSDT (Spot: ${g_xaut['xaut_price']:,.2f})\n", "title")
+            self.txt_display.insert(tk.END, f"3. XAUTUSDT (Spot: ${g_xaut['xaut_price']:,.2f}) ", "title")
+            self.txt_display.insert(tk.END, " [* ONLINE] [KLIK TEST CMD] >>\n", "link_xaut")
             xaut_tag = "green" if g_xaut["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Spread vs Spot   : ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%) │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_xaut['regime']}\n", xaut_tag)
@@ -491,12 +524,19 @@ class GEXTerminalHUD:
 
         self.txt_display.configure(state=tk.DISABLED)
 
-    def launch_scrapper_tester(self):
+    def launch_scrapper_tester(self, target="all"):
         """Buka pop-up jendela Command Prompt terminal menjalankan tester scrapper satu per satu."""
         try:
             import subprocess
             tester_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_scrappers.py")
-            cmd = f'start "SCRAPPER TESTER - UJI SATU PER SATU" cmd.exe /k "{sys.executable}" "{tester_path}"'
+            title_map = {
+                "1": "SCRAPPER 1: COMEX GOLD TESTER",
+                "2": "SCRAPPER 2: BTCUSD BINANCE TESTER",
+                "3": "SCRAPPER 3: XAUTUSDT OKX TESTER",
+                "all": "ALL SCRAPPERS TESTER"
+            }
+            win_title = title_map.get(str(target), "SCRAPPER TESTER")
+            cmd = f'start "{win_title}" cmd.exe /k "{sys.executable}" "{tester_path}" {target}'
             subprocess.Popen(cmd, shell=True)
         except Exception as e:
             print(f"[GEX Terminal] Gagal membuka tester pop-up: {e}")

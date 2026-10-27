@@ -86,21 +86,21 @@ Satu-satunya elemen kontrol pada layar adalah **tombol pemilih 3 mode**: `[ XAUU
 >> MODE: XAUUSD (SPOT GOLD)
 Spot: $4,076.80 │ Bid: $4,076.65 │ Ask: $4,076.95 │ Spread: $0.30 │ Vol: 1.00
 ------------------------------------------------------------------------------------
-1. COMEX (Futures: $4,076.80)
+1. COMEX (Futures: $4,076.80)  [* ONLINE] [KLIK TEST CMD] >>
    • Basis vs Futures : +$0.00 │ Regime: [+GEX POSITIVE] LONG GAMMA
    • Call Wall        : $4,100.00 (Vol: $28.40M)
    • Gamma Flip Level : $4,065.00 (Vol: $9.60M)
    • Put Wall         : $4,025.00 (Vol: $24.80M)
    • Net Dollar GEX   : +$26.50M per 1% move
 
-2. BTCUSD (Spot: $80,691.85)
+2. BTCUSD (Spot: $80,691.85)   [* ONLINE] [KLIK TEST CMD] >>
    • 24H Change       : +0.56% │ Rasio: 19.79x │ Regime: [+GEX BTC] VOLATILITY DAMPENER
    • Call Wall        : $4,140.00 (Vol: $18.50M)
    • Gamma Flip Level : $4,045.22 (Vol: $8.20M)
    • Put Wall         : $4,010.00 (Vol: $15.80M)
    • Net Dollar GEX   : +$17.04M per 1% move
 
-3. XAUTUSDT (Spot: $4,062.60)
+3. XAUTUSDT (Spot: $4,062.60)  [* ONLINE] [KLIK TEST CMD] >>
    • Spread vs Spot   : $-14.20 (-0.35%) │ Regime: [+GEX XAUT] TIGHT PEG
    • Call Wall        : $4,098.10 (Vol: $12.80M)
    • Gamma Flip Level : $4,069.70 (Vol: $6.40M)
@@ -115,6 +115,7 @@ INSTRUMEN     │ CALL WALL (VOL)       │ GAMMA FLIP (VOL)      │ PUT WALL (
 2. BTCUSD     │ $4,140.00 ($18.50M)   │ $4,045.22 ($8.20M)    │ $4,010.00 ($15.80M)
 3. XAUTUSDT   │ $4,098.10 ($12.80M)   │ $4,069.70 ($6.40M)    │ $4,055.50 ($11.20M)
 ====================================================================================
+TEST SCRAPPER:  [1. COMEX]   [2. BTCUSD]   [3. XAUTUSDT]
 ```
 
 #### Tampilan Mode 2: BTCUSD (Aktif)
