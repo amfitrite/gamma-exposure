@@ -55,6 +55,10 @@ Menganalisis eksposur gamma dari 3 pilar:
    * Mengukur rotasi portofolio pasar kripto (*Digital Gold vs Tether Gold*).
    * Memantau korelasi delta-gamma dealer kripto saat terjadi pergerakan ekstrem di pasar Bitcoin.
 
+### C. Mode 3: BTCUSD (Bitcoin)
+1. **GEX pada XAUTUSDT**:
+   * Mengukur *safe-haven flight* di dalam ekosistem kripto saat BTC menembus level Gamma Flip negatif (Short Gamma).
+
 ### D. Tampilan Eksklusif Berdasarkan Mode (Zero Cross-Clutter)
 Layar hanya menampilkan data GEX yang relevan dengan **mode yang sedang aktif**:
 * **Jika Mode `XAUUSD` Aktif**: 
@@ -65,6 +69,68 @@ Layar hanya menampilkan data GEX yang relevan dengan **mode yang sedang aktif**:
   * Layar **hanya menampilkan GEX untuk XAUTUSDT** (GEX pada BTCUSD). Data XAUUSD disembunyikan.
 
 Satu-satunya elemen kontrol pada layar adalah **tombol pemilih 3 mode**: `[ XAUUSD ]`, `[ BTCUSD ]`, dan `[ XAUTUSDT ]`.
+
+### E. Visual Mockup Tampilan 3 Mode
+
+#### Tampilan Mode 1: XAUUSD (Aktif)
+```text
+====================================================================================
+ [ ■ XAUUSD ]                 [   BTCUSD   ]                 [   XAUTUSDT   ]
+====================================================================================
+>> MODE AKTIF: XAUUSD (HANYA MENAMPILKAN GEX XAUUSD)
+SPOT MT5: 2,745.20 │ Bid: 2,745.10 │ Ask: 2,745.30 │ Spread: 0.20 │ Vol: 1.50
+------------------------------------------------------------------------------------
+1. GEX PADA COMEX GOLD (GC=F):
+   • Basis vs Futures : +$0.10
+   • Gamma Regime     : [+GEX POSITIVE] (Volatilitas diredam / Mean Reverting)
+   • Gamma Flip Level : $2,735.00
+   • Major Call Wall  : $2,760.00 (Resistensi Utama)
+   • Major Put Wall   : $2,720.00 (Support Utama)
+
+2. GEX PADA BTCUSD:
+   • BTC Spot         : $80,595.00
+   • Cross Gamma Bias : MODERATE SPILLOVER (Korelasi Likuiditas 0.31)
+   • Shock Level      : $79,500.00
+
+3. GEX PADA XAUTUSDT:
+   • XAUT Spot        : $4,058.60
+   • Basis Peg Spread : +$0.50 (Normal Peg)
+   • Arbitrage Risk   : LOW (Peg Stabil)
+====================================================================================
+```
+
+#### Tampilan Mode 2: BTCUSD (Aktif)
+```text
+====================================================================================
+ [   XAUUSD   ]                 [ ■ BTCUSD ]                 [   XAUTUSDT   ]
+====================================================================================
+>> MODE AKTIF: BTCUSD (HANYA MENAMPILKAN GEX BTCUSD)
+SPOT BTC/USDT: $80,595.00 │ 24H: +0.39% ▲ │ 24H High: $81,200 │ 24H Low: $79,800
+------------------------------------------------------------------------------------
+1. GEX PADA XAUTUSDT (GOLD TOKEN SENSITIVITY):
+   • XAUT Spot Price  : $4,058.60
+   • Relative Ratio   : 19.85 XAUT per 1 BTC
+   • Cross Gamma Flow : NEUTRAL
+   • Hedging Trigger  : Jika BTC < $79,500 (Potensi rotasi safe-haven ke Gold Token)
+   • Dealer Bias      : Balanced Hedging
+====================================================================================
+```
+
+#### Tampilan Mode 3: XAUTUSDT (Aktif)
+```text
+====================================================================================
+ [   XAUUSD   ]                 [   BTCUSD   ]                 [ ■ XAUTUSDT ]
+====================================================================================
+>> MODE AKTIF: XAUTUSDT (HANYA MENAMPILKAN GEX XAUTUSDT)
+SPOT XAUT/USDT: $4,058.60 │ 24H: +0.88% ▲ │ Source: OKX Direct Node
+------------------------------------------------------------------------------------
+1. GEX PADA BTCUSD (CRYPTO PORTFOLIO ROTATION):
+   • BTC Spot Price   : $80,595.00
+   • BTC Volatility   : EXPANDING (Gamma Risk di BTC mempengaruhi selera risiko XAUT)
+   • Peg Correlation  : 0.42
+   • Rotational Bias  : BULLISH GOLD DEFENSE
+====================================================================================
+```
 
 ---
 
