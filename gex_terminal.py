@@ -298,7 +298,7 @@ class GEXTerminalHUD:
         lbl_scrapper_title.pack(side=tk.LEFT, padx=(8, 2), pady=4)
         
         btn_test1 = tk.Label(
-            footer, text=" [1. COMEX] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+            footer, text=" [1. GC=F GOLD] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
         )
         btn_test1.pack(side=tk.LEFT, padx=3, pady=3)
         btn_test1.bind("<Button-1>", lambda e: self.launch_scrapper_tester("1"))
@@ -306,7 +306,7 @@ class GEXTerminalHUD:
         btn_test1.bind("<Leave>", lambda e: btn_test1.configure(bg="#1a2332", fg=self.c_green))
 
         btn_test2 = tk.Label(
-            footer, text=" [2. BTCUSD] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+            footer, text=" [2. BTC/USDT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
         )
         btn_test2.pack(side=tk.LEFT, padx=3, pady=3)
         btn_test2.bind("<Button-1>", lambda e: self.launch_scrapper_tester("2"))
@@ -314,7 +314,7 @@ class GEXTerminalHUD:
         btn_test2.bind("<Leave>", lambda e: btn_test2.configure(bg="#1a2332", fg=self.c_green))
 
         btn_test3 = tk.Label(
-            footer, text=" [3. XAUTUSDT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+            footer, text=" [3. XAUT/USDT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
         )
         btn_test3.pack(side=tk.LEFT, padx=3, pady=3)
         btn_test3.bind("<Button-1>", lambda e: self.launch_scrapper_tester("3"))
@@ -386,7 +386,9 @@ class GEXTerminalHUD:
         is_conn = mt5_st["is_connected"]
         tick = mt5_st["tick"]
         
-        now_str = datetime.datetime.now().strftime("%H:%M:%S WIB")
+        now_dt = datetime.datetime.now().astimezone()
+        tz_str = now_dt.tzname() or "Local"
+        now_str = now_dt.strftime(f"%H:%M:%S {tz_str}")
         self.lbl_time.configure(text=now_str)
         
         bound_p = mt5_st.get("bound_port", 5556)
@@ -446,8 +448,8 @@ class GEXTerminalHUD:
             g_btc = gex_engine.compute_gold_via_btcusd_custom_gex(xau_spot, btc_px, btc_chg)
             g_xaut = gex_engine.compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_px, xaut_chg)
 
-            # 1. COMEX
-            self.txt_display.insert(tk.END, f"1. COMEX (Futures: ${g_comex['comex_price']:,.2f})\n", "title")
+            # 1. GOLD FUTURES
+            self.txt_display.insert(tk.END, f"1. GOLD FUTURES (Yahoo GC=F / CME Ref: ${g_comex['comex_price']:,.2f})\n", "title")
             basis_str = f"{g_comex['basis_spread']:+.2f}"
             regime_tag = "green" if g_comex["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Basis vs Futures : ${basis_str} │ Regime: ")
@@ -459,7 +461,7 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_comex['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 2. BTCUSD
-            self.txt_display.insert(tk.END, f"2. BTCUSD (Spot: ${g_btc['btc_price']:,.2f})\n", "title")
+            self.txt_display.insert(tk.END, f"2. BTCUSD (Binance Cloud Mirror: ${g_btc['btc_price']:,.2f})\n", "title")
             btc_tag = "green" if g_btc["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • 24H Change       : {g_btc['btc_chg_pct']:+.2f}% │ Rasio: {g_btc['ratio_btc_to_xau']:.2f}x │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_btc['regime']}\n", btc_tag)
@@ -470,7 +472,7 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_btc['net_gex_m']:+.2f}M per 1% move\n\n")
 
             # 3. XAUTUSDT
-            self.txt_display.insert(tk.END, f"3. XAUTUSDT (Spot: ${g_xaut['xaut_price']:,.2f})\n", "title")
+            self.txt_display.insert(tk.END, f"3. XAUTUSDT (OKX Market REST: ${g_xaut['xaut_price']:,.2f})\n", "title")
             xaut_tag = "green" if g_xaut["is_positive"] else "red"
             self.txt_display.insert(tk.END, f"   • Spread vs Spot   : ${g_xaut['basis_spread']:+.2f} ({g_xaut['pct_spread']:+.2f}%) │ Regime: ")
             self.txt_display.insert(tk.END, f"{g_xaut['regime']}\n", xaut_tag)
@@ -487,9 +489,9 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, tbl_hdr, "title")
             self.txt_display.insert(tk.END, "─" * 78 + "\n", "dim")
             
-            row1 = f"{'1. COMEX':<13} │ ${g_comex['call_wall']:<8,.2f} (${g_comex['call_wall_vol_m']:.1f}M) │ ${g_comex['gamma_flip']:<8,.2f} (${g_comex['gamma_flip_vol_m']:.1f}M) │ ${g_comex['put_wall']:<8,.2f} (${g_comex['put_wall_vol_m']:.1f}M)\n"
-            row2 = f"{'2. BTCUSD':<13} │ ${g_btc['call_wall']:<8,.2f} (${g_btc['call_wall_vol_m']:.1f}M) │ ${g_btc['gamma_flip']:<8,.2f} (${g_btc['gamma_flip_vol_m']:.1f}M) │ ${g_btc['put_wall']:<8,.2f} (${g_btc['put_wall_vol_m']:.1f}M)\n"
-            row3 = f"{'3. XAUTUSDT':<13} │ ${g_xaut['call_wall']:<8,.2f} (${g_xaut['call_wall_vol_m']:.1f}M) │ ${g_xaut['gamma_flip']:<8,.2f} (${g_xaut['gamma_flip_vol_m']:.1f}M) │ ${g_xaut['put_wall']:<8,.2f} (${g_xaut['put_wall_vol_m']:.1f}M)\n"
+            row1 = f"{'1. GC=F GOLD':<13} │ ${g_comex['call_wall']:<8,.2f} (${g_comex['call_wall_vol_m']:.1f}M) │ ${g_comex['gamma_flip']:<8,.2f} (${g_comex['gamma_flip_vol_m']:.1f}M) │ ${g_comex['put_wall']:<8,.2f} (${g_comex['put_wall_vol_m']:.1f}M)\n"
+            row2 = f"{'2. BTC/USDT':<13} │ ${g_btc['call_wall']:<8,.2f} (${g_btc['call_wall_vol_m']:.1f}M) │ ${g_btc['gamma_flip']:<8,.2f} (${g_btc['gamma_flip_vol_m']:.1f}M) │ ${g_btc['put_wall']:<8,.2f} (${g_btc['put_wall_vol_m']:.1f}M)\n"
+            row3 = f"{'3. XAUT/USDT':<13} │ ${g_xaut['call_wall']:<8,.2f} (${g_xaut['call_wall_vol_m']:.1f}M) │ ${g_xaut['gamma_flip']:<8,.2f} (${g_xaut['gamma_flip_vol_m']:.1f}M) │ ${g_xaut['put_wall']:<8,.2f} (${g_xaut['put_wall_vol_m']:.1f}M)\n"
             
             self.txt_display.insert(tk.END, row1)
             self.txt_display.insert(tk.END, row2)

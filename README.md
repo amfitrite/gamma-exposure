@@ -180,7 +180,7 @@ EA MQL5 kustom yang mampu menyiarkan tick order flow ke hingga 5 port TCP secara
 | `gex_engine.py` | Engine kalkulasi matematis Gamma Exposure, Call/Put Walls, Gamma Flip, dan Net Dollar GEX ($M). |
 | `mt5_listener.py` | Listener socket TCP thread-safe untuk menerima tick real-time dari MT5 EA (port 5556 / 5555). |
 | `manual_check.ps1` | Script uji mandiri PowerShell otomatis (Zero-Typing) untuk COMEX, BTCUSD, dan XAUTUSDT. |
-| `collector.py` | Engine pengambil data live HTTPS direct socket (Binance, OKX, Yahoo Finance) dengan verifikasi audit anti-proxy dan anti-mock. |
+| `collector.py` | Engine pengambil data pasar (Binance Vision AWS Mirror, OKX REST, dan Yahoo Finance GC=F synthetic). |
 | `multi_port_bridge_EA.mq5` | Expert Advisor MT5 pengirim tick ke multi-port (5555+). |
 | `README.md` | Dokumentasi arsitektur dan spesifikasi sistem. |
 
@@ -198,16 +198,16 @@ python gex_terminal.py
 ```
 
 ### Uji Mandiri Scrapper Langsung (Zero-Typing PowerShell):
-Pengguna dapat langsung mengklik tombol **`[1. COMEX]`**, **`[2. BTCUSD]`**, atau **`[3. XAUTUSDT]`** pada bagian footer terminal. Jendela PowerShell akan langsung muncul mengeksekusi koneksi API dan menampilkan data valid tanpa perlu mengetik manual:
+Pengguna dapat langsung mengklik tombol **`[1. GC=F GOLD]`**, **`[2. BTC/USDT]`**, atau **`[3. XAUT/USDT]`** pada bagian footer terminal. Jendela PowerShell akan langsung muncul mengeksekusi koneksi API dan menampilkan data valid tanpa perlu mengetik manual:
 ```powershell
 # Atau eksekusi script manual dari PowerShell jika diinginkan:
-powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 1   # Scrapper 1 (COMEX)
-powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 2   # Scrapper 2 (BTCUSD)
-powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 3   # Scrapper 3 (XAUTUSDT)
+powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 1   # GC=F Gold (Yahoo Finance / CME Ref)
+powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 2   # BTC/USDT (Binance Vision Cloud)
+powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 3   # XAUT/USDT (OKX Market REST)
 ```
 
 ### Navigasi & Pintasan Keyboard:
 * **Tombol Mode**: Klik `[XAUUSD]`, `[BTCUSD]`, atau `[XAUTUSDT]` di header atas untuk berpindah mode.
-* **Tombol Footer Scrapper**: Klik `[1. COMEX]`, `[2. BTCUSD]`, atau `[3. XAUTUSDT]` untuk membuka jendela uji PowerShell otomatis.
+* **Tombol Footer Scrapper**: Klik `[1. GC=F GOLD]`, `[2. BTC/USDT]`, atau `[3. XAUT/USDT]` untuk membuka jendela uji PowerShell otomatis.
 * **Klik & Drag**: Memindahkan posisi jendela di layar monitor.
 * **ESC** atau **Q**: Keluar dari aplikasi.

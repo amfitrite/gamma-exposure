@@ -1,7 +1,8 @@
 """
 Core Market Data Collector & Network Auditor.
-Direct connection to upstream official exchange & financial query endpoints.
-No proxy, no mock/demo data, verifiable server timestamps & remote IP resolution.
+Direct connection to upstream public mirror & financial query endpoints.
+Primary: Binance Vision (AWS Mirror), OKX REST Gateway, Yahoo Finance (GC=F Front-Month).
+No local proxy, verified server timestamps & remote IP DNS resolution.
 """
 
 import os
@@ -30,7 +31,7 @@ def audit_system_network():
     }
 
 def fetch_btc():
-    """Tarik data BTC/USDT live langsung dari Binance Vision / OKX."""
+    """Tarik data BTC/USDT live dari Binance Vision (AWS Public Mirror cluster) dengan failover ke OKX."""
     t0 = time.time()
     url = "https://data-api.binance.vision/api/v3/ticker/24hr?symbol=BTCUSDT"
     host = "data-api.binance.vision"
@@ -125,7 +126,7 @@ def fetch_xaut():
         return {"symbol": "XAUT/USDT", "error": str(e), "status": 500}
 
 def fetch_gold_comex():
-    """Tarik data Gold Futures COMEX (GC=F) live dari Yahoo Finance Query Engine."""
+    """Tarik benchmark Gold Futures front-month (GC=F CME synthetic) dari Yahoo Finance Query Engine."""
     t0 = time.time()
     url = "https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d"
     host = "query1.finance.yahoo.com"

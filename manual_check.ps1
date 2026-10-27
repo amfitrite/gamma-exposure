@@ -12,11 +12,11 @@ function Show-Header ($title) {
 }
 
 function Check-Comex {
-    Show-Header "[1/3] CEK MANUAL KONEKSI SCRAPPER 1: COMEX GOLD (YAHOO FINANCE)"
+    Show-Header "[1/3] CEK MANUAL SCRAPPER 1: GOLD FUTURES GC=F (YAHOO / CME SYNTHETIC)"
     $url = "https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d"
     Write-Host "Target URL   : $url" -ForegroundColor Gray
     Write-Host "Perintah PS  : (Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri '$url').chart.result.meta" -ForegroundColor DarkGray
-    Write-Host "Menghubungi Server CME/Yahoo..." -ForegroundColor White
+    Write-Host "Menghubungi Endpoint Yahoo Finance GC=F (Front-Month Continuous)..." -ForegroundColor White
     
     try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
@@ -26,7 +26,7 @@ function Check-Comex {
         
         Write-Host "--------------------------------------------------------------------------------" -ForegroundColor Cyan
         Write-Host "STATUS       : [200 OK] SUKSES TERHUBUNG LANGSUNG (Latency: $($sw.ElapsedMilliseconds) ms)" -ForegroundColor Green
-        Write-Host "HASIL VERIFIKASI DATA RESMI:" -ForegroundColor Yellow
+        Write-Host "HASIL VERIFIKASI DATA BENCHMARK:" -ForegroundColor Yellow
         $meta | Select-Object symbol, exchangeName, regularMarketPrice, chartPreviousClose, regularMarketVolume | Format-List
     } catch {
         Write-Host "--------------------------------------------------------------------------------" -ForegroundColor Red
@@ -36,11 +36,11 @@ function Check-Comex {
 }
 
 function Check-Btc {
-    Show-Header "[2/3] CEK MANUAL KONEKSI SCRAPPER 2: BTC/USDT (BINANCE DATA API)"
+    Show-Header "[2/3] CEK MANUAL SCRAPPER 2: BTC/USDT (BINANCE VISION PUBLIC CLOUD)"
     $url = "https://data-api.binance.vision/api/v3/ticker/24hr?symbol=BTCUSDT"
     Write-Host "Target URL   : $url" -ForegroundColor Gray
     Write-Host "Perintah PS  : (Invoke-RestMethod -Uri '$url')" -ForegroundColor DarkGray
-    Write-Host "Menghubungi Node Binance Data API..." -ForegroundColor White
+    Write-Host "Menghubungi Cluster Binance Vision (AWS Public Mirror)..." -ForegroundColor White
     
     try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
@@ -59,11 +59,11 @@ function Check-Btc {
 }
 
 function Check-Xaut {
-    Show-Header "[3/3] CEK MANUAL KONEKSI SCRAPPER 3: XAUT/USDT (OKX MARKET API)"
+    Show-Header "[3/3] CEK MANUAL SCRAPPER 3: XAUT/USDT (OKX MARKET REST GATEWAY)"
     $url = "https://www.okx.com/api/v5/market/ticker?instId=XAUT-USDT"
     Write-Host "Target URL   : $url" -ForegroundColor Gray
     Write-Host "Perintah PS  : (Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri '$url').data" -ForegroundColor DarkGray
-    Write-Host "Menghubungi Server Pasar OKX..." -ForegroundColor White
+    Write-Host "Menghubungi Server Pasar OKX REST Gateway..." -ForegroundColor White
     
     try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
