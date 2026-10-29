@@ -62,8 +62,8 @@ class GEXTerminalHUD:
         self.c_yellow = "#d29922"       # Warning / Notice
         
         # Dimensi Jendela
-        self.win_width = 820
-        self.win_height = 650
+        self.win_width = 860
+        self.win_height = 740
         
         # Posisikan tepat di tengah layar
         screen_w = self.root.winfo_screenwidth()
@@ -290,7 +290,7 @@ class GEXTerminalHUD:
         
         lbl_scrapper_title = tk.Label(
             footer, 
-            text=" CEK MANUAL POWERSHELL: ", 
+            text=" CEK MANUAL: ", 
             font=self.font_mono_bold, 
             fg=self.c_text_dim, 
             bg=self.c_header_bg
@@ -298,28 +298,44 @@ class GEXTerminalHUD:
         lbl_scrapper_title.pack(side=tk.LEFT, padx=(8, 2), pady=4)
         
         btn_test1 = tk.Label(
-            footer, text=" [1. GC=F GOLD] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+            footer, text=" [1. GC=F] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=4, pady=2
         )
-        btn_test1.pack(side=tk.LEFT, padx=3, pady=3)
+        btn_test1.pack(side=tk.LEFT, padx=2, pady=3)
         btn_test1.bind("<Button-1>", lambda e: self.launch_scrapper_tester("1"))
         btn_test1.bind("<Enter>", lambda e: btn_test1.configure(bg="#22334a", fg=self.c_yellow))
         btn_test1.bind("<Leave>", lambda e: btn_test1.configure(bg="#1a2332", fg=self.c_green))
 
         btn_test2 = tk.Label(
-            footer, text=" [2. BTC/USDT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+            footer, text=" [2. BTC] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=4, pady=2
         )
-        btn_test2.pack(side=tk.LEFT, padx=3, pady=3)
+        btn_test2.pack(side=tk.LEFT, padx=2, pady=3)
         btn_test2.bind("<Button-1>", lambda e: self.launch_scrapper_tester("2"))
         btn_test2.bind("<Enter>", lambda e: btn_test2.configure(bg="#22334a", fg=self.c_yellow))
         btn_test2.bind("<Leave>", lambda e: btn_test2.configure(bg="#1a2332", fg=self.c_green))
 
         btn_test3 = tk.Label(
-            footer, text=" [3. XAUT/USDT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=6, pady=2
+            footer, text=" [3. XAUT] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=4, pady=2
         )
-        btn_test3.pack(side=tk.LEFT, padx=3, pady=3)
+        btn_test3.pack(side=tk.LEFT, padx=2, pady=3)
         btn_test3.bind("<Button-1>", lambda e: self.launch_scrapper_tester("3"))
         btn_test3.bind("<Enter>", lambda e: btn_test3.configure(bg="#22334a", fg=self.c_yellow))
         btn_test3.bind("<Leave>", lambda e: btn_test3.configure(bg="#1a2332", fg=self.c_green))
+
+        btn_test4 = tk.Label(
+            footer, text=" [4. DXY] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=4, pady=2
+        )
+        btn_test4.pack(side=tk.LEFT, padx=2, pady=3)
+        btn_test4.bind("<Button-1>", lambda e: self.launch_scrapper_tester("4"))
+        btn_test4.bind("<Enter>", lambda e: btn_test4.configure(bg="#22334a", fg=self.c_yellow))
+        btn_test4.bind("<Leave>", lambda e: btn_test4.configure(bg="#1a2332", fg=self.c_green))
+
+        btn_test5 = tk.Label(
+            footer, text=" [5. OIL] ", font=self.font_mono_bold, fg=self.c_green, bg="#1a2332", cursor="hand2", padx=4, pady=2
+        )
+        btn_test5.pack(side=tk.LEFT, padx=2, pady=3)
+        btn_test5.bind("<Button-1>", lambda e: self.launch_scrapper_tester("5"))
+        btn_test5.bind("<Enter>", lambda e: btn_test5.configure(bg="#22334a", fg=self.c_yellow))
+        btn_test5.bind("<Leave>", lambda e: btn_test5.configure(bg="#1a2332", fg=self.c_green))
         
         self.lbl_time = tk.Label(
             footer, 
@@ -408,6 +424,8 @@ class GEXTerminalHUD:
         btc_data = self.market_cache.get("BTC/USDT", {})
         xaut_data = self.market_cache.get("XAUT/USDT", {})
         gold_data = self.market_cache.get("GOLD COMEX", {})
+        dxy_data = self.market_cache.get("USD (DXY)", {})
+        oil_data = self.market_cache.get("OIL WTI", {})
 
         comex_px = gold_data.get("price", 0.0)
         comex_chg = gold_data.get("change_pct", 0.0)
@@ -415,6 +433,10 @@ class GEXTerminalHUD:
         btc_chg = btc_data.get("change_pct", 0.0)
         xaut_px = xaut_data.get("price", 0.0)
         xaut_chg = xaut_data.get("change_pct", 0.0)
+        dxy_px = dxy_data.get("price", 0.0)
+        dxy_chg = dxy_data.get("change_pct", 0.0)
+        oil_px = oil_data.get("price", 0.0)
+        oil_chg = oil_data.get("change_pct", 0.0)
 
         # Tentukan Harga Spot XAUUSD (dari MT5 atau Fallback COMEX jika MT5 belum tersambung)
         if is_conn and tick["bid"] > 0:
@@ -443,10 +465,12 @@ class GEXTerminalHUD:
                 text=f"Spot: ${xau_spot:,.2f}  │  Bid: ${xau_bid:,.2f}  │  Ask: ${xau_ask:,.2f}  │  Spread: ${xau_spread:.2f}  │  Vol: {xau_vol:.2f}"
             )
 
-            # Hitung 3 Pilar GEX XAUUSD (COMEX Benchmark + 2 Custom GEX)
+            # Hitung 5 Pilar GEX XAUUSD (COMEX Benchmark + 4 Custom GEX Makro)
             g_comex = gex_engine.compute_gold_comex_gex(xau_spot, comex_px, comex_chg)
             g_btc = gex_engine.compute_gold_via_btcusd_custom_gex(xau_spot, btc_px, btc_chg)
             g_xaut = gex_engine.compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_px, xaut_chg)
+            g_dxy = gex_engine.compute_gold_via_dxy_custom_gex(xau_spot, dxy_px, dxy_chg)
+            g_oil = gex_engine.compute_gold_via_oil_wti_gex(xau_spot, oil_px, oil_chg)
 
             # 1. GOLD FUTURES
             self.txt_display.insert(tk.END, f"1. GOLD FUTURES (Yahoo GC=F / CME Ref: ${g_comex['comex_price']:,.2f})\n", "title")
@@ -488,14 +512,47 @@ class GEXTerminalHUD:
             self.txt_display.insert(tk.END, f"${g_xaut['put_wall']:,.2f} (Vol: ${g_xaut['put_wall_vol_m']:.2f}M)\n", "green")
             self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_xaut['net_gex_m']:+.2f}M per 1% move\n\n")
 
-            # 4. TABEL RISET PERBANDINGAN TIGA PILAR (SKALA XAUUSD)
+            # 4. DXY DOLLAR INDEX
+            self.txt_display.insert(tk.END, f"4. DXY DOLLAR INDEX (Yahoo DX-Y.NYB / ICE Ref: {g_dxy['dxy_price']:.3f})\n", "title")
+            dxy_tag = "green" if g_dxy["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • 24H Change       : {g_dxy['dxy_chg_pct']:+.2f}% │ Elasticity: {g_dxy['elasticity_beta']} │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_dxy['regime']}\n", dxy_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_dxy['call_wall']:,.2f} (Vol: ${g_dxy['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_dxy['gamma_flip']:,.2f} (Vol: ${g_dxy['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_dxy['put_wall']:,.2f} (Vol: ${g_dxy['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_dxy['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 5. CRUDE OIL WTI
+            self.txt_display.insert(tk.END, f"5. CRUDE OIL WTI (Yahoo CL=F / NYMEX Ref: ${g_oil['oil_price']:,.2f})\n", "title")
+            oil_tag = "green" if g_oil["is_positive"] else "red"
+            self.txt_display.insert(tk.END, f"   • 24H Change       : {g_oil['oil_chg_pct']:+.2f}% │ G/O Ratio: {g_oil['ratio_desc']} │ Regime: ")
+            self.txt_display.insert(tk.END, f"{g_oil['regime']}\n", oil_tag)
+            self.txt_display.insert(tk.END, "   • Call Wall        : ")
+            self.txt_display.insert(tk.END, f"${g_oil['call_wall']:,.2f} (Vol: ${g_oil['call_wall_vol_m']:.2f}M)\n", "red")
+            self.txt_display.insert(tk.END, "   • Gamma Flip Level : ")
+            self.txt_display.insert(tk.END, f"${g_oil['gamma_flip']:,.2f} (Vol: ${g_oil['gamma_flip_vol_m']:.2f}M)\n", "white_bold")
+            self.txt_display.insert(tk.END, "   • Put Wall         : ")
+            self.txt_display.insert(tk.END, f"${g_oil['put_wall']:,.2f} (Vol: ${g_oil['put_wall_vol_m']:.2f}M)\n", "green")
+            self.txt_display.insert(tk.END, f"   • Net Dollar GEX   : ${g_oil['net_gex_m']:+.2f}M per 1% move\n\n")
+
+            # 6. TABEL RISET PERBANDINGAN LIMA PILAR (SKALA XAUUSD)
             self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
-            self.txt_display.insert(tk.END, "[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]\n", "white_bold")
+            self.txt_display.insert(tk.END, "[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD (5 PILAR MAKRO)]\n", "white_bold")
             tbl_hdr = f"{'INSTRUMEN':<13} │ {'CALL WALL (VOL)':<22} │ {'GAMMA FLIP (VOL)':<22} │ {'PUT WALL (VOL)'}\n"
             self.txt_display.insert(tk.END, tbl_hdr, "title")
             self.txt_display.insert(tk.END, "─" * 84 + "\n", "dim")
             
-            for name, g in [("1. GC=F GOLD", g_comex), ("2. BTC/USDT", g_btc), ("3. XAUT/USDT", g_xaut)]:
+            pilar_list = [
+                ("1. GC=F GOLD", g_comex),
+                ("2. BTC/USDT", g_btc),
+                ("3. XAUT/USDT", g_xaut),
+                ("4. DXY INDEX", g_dxy),
+                ("5. WTI OIL", g_oil)
+            ]
+            for name, g in pilar_list:
                 c_str = f"${g['call_wall']:,.2f} (${g['call_wall_vol_m']:.1f}M)"
                 f_str = f"${g['gamma_flip']:,.2f} (${g['gamma_flip_vol_m']:.1f}M)"
                 p_str = f"${g['put_wall']:,.2f} (${g['put_wall_vol_m']:.1f}M)"

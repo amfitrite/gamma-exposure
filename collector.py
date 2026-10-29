@@ -197,8 +197,44 @@ def fetch_usd_dxy():
     except Exception as e:
         return {"symbol": "USD (DXY)", "error": str(e), "status": 500}
 
+def fetch_oil_wti():
+    """Tarik data Crude Oil WTI front-month (CL=F NYMEX) dari Yahoo Finance Query Engine."""
+    t0 = time.time()
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1d"
+    host = "query1.finance.yahoo.com"
+    
+    try:
+        remote_ip = socket.gethostbyname(host)
+        resp = requests.get(url, headers=HEADERS, timeout=4)
+        lat = int((time.time() - t0) * 1000)
+        
+        if resp.status_code == 200:
+            meta = resp.json()["chart"]["result"][0]["meta"]
+            price = float(meta["regularMarketPrice"])
+            prev_close = float(meta.get("chartPreviousClose", price))
+            chg_pct = ((price - prev_close) / prev_close) * 100 if prev_close else 0.0
+            high = float(meta.get("regularMarketDayHigh", price))
+            low = float(meta.get("regularMarketDayLow", price))
+            server_ts = int(meta.get("regularMarketTime", time.time())) * 1000
+            
+            return {
+                "symbol": "OIL WTI",
+                "label": "Crude Oil WTI (CL=F)",
+                "price": price,
+                "change_pct": chg_pct,
+                "high": high,
+                "low": low,
+                "server_time_ms": server_ts,
+                "remote_ip": remote_ip,
+                "latency_ms": lat,
+                "source": "Yahoo Query Engine",
+                "status": 200
+            }
+    except Exception as e:
+        return {"symbol": "OIL WTI", "error": str(e), "status": 500}
+
 def fetch_all_market_data():
-    """Tarik keempat aset secara paralel dan cepat (concurrent threads)."""
+    """Tarik kelima aset secara paralel dan cepat (concurrent threads)."""
     t_start = time.time()
     net_audit = audit_system_network()
     
@@ -206,11 +242,12 @@ def fetch_all_market_data():
         "btc": fetch_btc,
         "xaut": fetch_xaut,
         "gold": fetch_gold_comex,
-        "usd": fetch_usd_dxy
+        "usd": fetch_usd_dxy,
+        "oil": fetch_oil_wti
     }
     
     results = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         future_map = {executor.submit(fn): key for key, fn in tasks.items()}
         for future in concurrent.futures.as_completed(future_map):
             key = future_map[future]
@@ -228,7 +265,8 @@ def fetch_all_market_data():
             results.get("btc"),
             results.get("xaut"),
             results.get("gold"),
-            results.get("usd")
+            results.get("usd"),
+            results.get("oil")
         ]
     }
 

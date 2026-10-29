@@ -59,7 +59,7 @@ function Check-Btc {
 }
 
 function Check-Xaut {
-    Show-Header "[3/3] CEK MANUAL SCRAPPER 3: XAUT/USDT (OKX MARKET REST GATEWAY)"
+    Show-Header "[3/5] CEK MANUAL SCRAPPER 3: XAUT/USDT (OKX MARKET REST GATEWAY)"
     $url = "https://www.okx.com/api/v5/market/ticker?instId=XAUT-USDT"
     Write-Host "Target URL   : $url" -ForegroundColor Gray
     Write-Host "Perintah PS  : (Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri '$url').data" -ForegroundColor DarkGray
@@ -81,6 +81,54 @@ function Check-Xaut {
     Write-Host "================================================================================" -ForegroundColor Cyan
 }
 
+function Check-Dxy {
+    Show-Header "[4/5] CEK MANUAL SCRAPPER 4: US DOLLAR INDEX DX-Y.NYB (YAHOO / ICE REF)"
+    $url = "https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1d&range=1d"
+    Write-Host "Target URL   : $url" -ForegroundColor Gray
+    Write-Host "Perintah PS  : (Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri '$url').chart.result.meta" -ForegroundColor DarkGray
+    Write-Host "Menghubungi Endpoint Yahoo Finance DX-Y.NYB..." -ForegroundColor White
+    
+    try {
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        $resp = Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri $url -TimeoutSec 5
+        $sw.Stop()
+        $meta = $resp.chart.result.meta
+        
+        Write-Host "--------------------------------------------------------------------------------" -ForegroundColor Cyan
+        Write-Host "STATUS       : [200 OK] SUKSES TERHUBUNG LANGSUNG (Latency: $($sw.ElapsedMilliseconds) ms)" -ForegroundColor Green
+        Write-Host "HASIL VERIFIKASI DATA RESMI DXY:" -ForegroundColor Yellow
+        $meta | Select-Object symbol, regularMarketPrice, chartPreviousClose, regularMarketDayHigh, regularMarketDayLow | Format-List
+    } catch {
+        Write-Host "--------------------------------------------------------------------------------" -ForegroundColor Red
+        Write-Host "ERROR        : Gagal terhubung: $_" -ForegroundColor Red
+    }
+    Write-Host "================================================================================" -ForegroundColor Cyan
+}
+
+function Check-Oil {
+    Show-Header "[5/5] CEK MANUAL SCRAPPER 5: CRUDE OIL WTI CL=F (YAHOO / NYMEX REF)"
+    $url = "https://query1.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1d"
+    Write-Host "Target URL   : $url" -ForegroundColor Gray
+    Write-Host "Perintah PS  : (Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri '$url').chart.result.meta" -ForegroundColor DarkGray
+    Write-Host "Menghubungi Endpoint Yahoo Finance CL=F..." -ForegroundColor White
+    
+    try {
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        $resp = Invoke-RestMethod -Headers @{'User-Agent'='Mozilla/5.0'} -Uri $url -TimeoutSec 5
+        $sw.Stop()
+        $meta = $resp.chart.result.meta
+        
+        Write-Host "--------------------------------------------------------------------------------" -ForegroundColor Cyan
+        Write-Host "STATUS       : [200 OK] SUKSES TERHUBUNG LANGSUNG (Latency: $($sw.ElapsedMilliseconds) ms)" -ForegroundColor Green
+        Write-Host "HASIL VERIFIKASI DATA RESMI WTI OIL:" -ForegroundColor Yellow
+        $meta | Select-Object symbol, regularMarketPrice, chartPreviousClose, regularMarketDayHigh, regularMarketDayLow | Format-List
+    } catch {
+        Write-Host "--------------------------------------------------------------------------------" -ForegroundColor Red
+        Write-Host "ERROR        : Gagal terhubung: $_" -ForegroundColor Red
+    }
+    Write-Host "================================================================================" -ForegroundColor Cyan
+}
+
 Clear-Host
 if ($Target -eq "1" -or $Target.ToLower() -eq "comex") {
     Check-Comex
@@ -88,12 +136,20 @@ if ($Target -eq "1" -or $Target.ToLower() -eq "comex") {
     Check-Btc
 } elseif ($Target -eq "3" -or $Target.ToLower() -eq "xaut") {
     Check-Xaut
+} elseif ($Target -eq "4" -or $Target.ToLower() -eq "dxy") {
+    Check-Dxy
+} elseif ($Target -eq "5" -or $Target.ToLower() -eq "oil") {
+    Check-Oil
 } else {
     Check-Comex
     Write-Host ""
     Check-Btc
     Write-Host ""
     Check-Xaut
+    Write-Host ""
+    Check-Dxy
+    Write-Host ""
+    Check-Oil
 }
 
 Write-Host ""

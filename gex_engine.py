@@ -179,6 +179,119 @@ def compute_gold_via_xautusdt_custom_gex(xau_spot, xaut_price, xaut_chg_pct=0.0)
         "peg_stability": "99.8% (STABIL)" if is_positive_peg else "DEVIASI TERDETEKSI"
     }
 
+def compute_gold_via_dxy_custom_gex(xau_spot, dxy_price, dxy_chg_pct=0.0):
+    """
+    Pilar 4: Custom GEX XAUUSD Berbasis DXY (US Dollar Index).
+    Menerapkan 'Hukum Inversi Gamma':
+    - Resistensi DXY (Call Wall USD) -> Menjadi Support XAUUSD (Put Wall Emas)
+    - Support DXY (Put Wall USD) -> Menjadi Plafon XAUUSD (Call Wall Emas)
+    - DXY Gamma Flip -> Titik Balik Akselerasi Moneter (Beta ~ 1.8x)
+    """
+    anchor = xau_spot if xau_spot > 0 else 2745.0
+    if dxy_price <= 0: dxy_price = 104.0
+    
+    # Koefisien Beta Elastisitas Invers
+    beta = 1.8
+    
+    # Grid strike ICE DXY standar (0.50 poin indeks)
+    strike_interval = 0.50
+    base_dxy_strike = round(dxy_price / strike_interval) * strike_interval
+    
+    # DXY Delta-hedging barriers
+    dxy_call_barrier = base_dxy_strike + strike_interval
+    dxy_put_barrier = base_dxy_strike - strike_interval
+    dxy_flip = base_dxy_strike - 0.20 if dxy_chg_pct >= 0 else base_dxy_strike + 0.20
+    
+    # Inversi ke Skala XAUUSD
+    pct_move_to_dxy_put = (dxy_put_barrier - dxy_price) / dxy_price
+    pct_move_to_dxy_call = (dxy_call_barrier - dxy_price) / dxy_price
+    pct_move_to_dxy_flip = (dxy_flip - dxy_price) / dxy_price
+    
+    # DXY turun -> XAUUSD naik (Call Wall)
+    call_wall_xau = round((anchor * (1.0 - beta * pct_move_to_dxy_put)) / 5.0) * 5.0
+    # DXY naik -> XAUUSD turun (Put Wall)
+    put_wall_xau = round((anchor * (1.0 - beta * pct_move_to_dxy_call)) / 5.0) * 5.0
+    # Inverted Gamma Flip
+    gamma_flip_xau = round((anchor * (1.0 - beta * pct_move_to_dxy_flip)) / 2.5) * 2.5
+    
+    # Pastikan Call Wall > Put Wall
+    if call_wall_xau <= put_wall_xau:
+        call_wall_xau = anchor + 25.0
+        put_wall_xau = anchor - 25.0
+        
+    is_positive = dxy_chg_pct <= 0.20  # DXY melemah/stabil = Bullish/Long Gamma bagi emas
+    regime = "[+GEX USD] DOLLAR RE-ACCUMULATION" if is_positive else "[-GEX USD] DOLLAR SQUEEZE PRESSURE"
+    regime_desc = "Tekanan dollar terkendali, dealer emas leluasa menyerap likuiditas" if is_positive else "Dollar menguat tajam, dealer emas short-gamma mewaspadai pelemahan"
+    
+    net_dxy_gex_m = anchor * 0.0045 * (1.15 if is_positive else -1.25)
+    call_wall_vol_m = abs(net_dxy_gex_m) * 1.15 + 4.2
+    put_wall_vol_m = abs(net_dxy_gex_m) * 0.95 + 3.5
+    gamma_flip_vol_m = abs(net_dxy_gex_m) * 0.40 + 1.3
+    
+    return {
+        "dxy_price": dxy_price,
+        "dxy_chg_pct": dxy_chg_pct,
+        "regime": regime,
+        "regime_desc": regime_desc,
+        "is_positive": is_positive,
+        "gamma_flip": gamma_flip_xau,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall_xau,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall_xau,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_dxy_gex_m,
+        "elasticity_beta": f"{beta:.1f}x (INVERSE)"
+    }
+
+def compute_gold_via_oil_wti_gex(xau_spot, oil_price, oil_chg_pct=0.0):
+    """
+    Pilar 5: Custom GEX XAUUSD Berbasis Crude Oil WTI (CL=F).
+    Mengukur transmisi ekspektasi inflasi energi (Headline CPI) dan guncangan geopolitik
+    melalui pemetaan rasio Gold-to-Oil (G/O Ratio).
+    """
+    anchor = xau_spot if xau_spot > 0 else 2745.0
+    if oil_price <= 0: oil_price = 70.0
+    
+    # Rasio Emas / Minyak (Barel per Troy Ounce)
+    ratio = anchor / oil_price if oil_price > 0 else 38.5
+    
+    # Strike interval WTI NYMEX $5.00 diproyeksikan ke skala emas
+    # Sensitivitas transmisi energi ke emas ~ 18% dari rasio
+    gold_oil_step = max(20.0, min(50.0, 5.0 * ratio * 0.18))
+    
+    is_positive_oil = oil_chg_pct >= -0.5
+    gamma_flip_xau = anchor - (gold_oil_step * 0.30) if is_positive_oil else anchor + (gold_oil_step * 0.25)
+    call_wall_xau = round((anchor + gold_oil_step * 0.75) / 5.0) * 5.0
+    put_wall_xau = round((anchor - gold_oil_step * 0.75) / 5.0) * 5.0
+    
+    regime = "[+GEX OIL] ENERGY VOLATILITY DAMPENER" if is_positive_oil else "[-GEX OIL] INFLATION / GEOPOLITICAL SPILLOVER"
+    regime_desc = "Pasar energi stabil, ekspektasi inflasi terkendali" if is_positive_oil else "Guncangan harga minyak menekan real yields, safe-haven flow aktif"
+    
+    net_oil_gex_m = anchor * 0.0038 * (1.10 if is_positive_oil else -1.30)
+    call_wall_vol_m = abs(net_oil_gex_m) * 1.12 + 3.8
+    put_wall_vol_m = abs(net_oil_gex_m) * 0.92 + 3.0
+    gamma_flip_vol_m = abs(net_oil_gex_m) * 0.40 + 1.2
+    
+    ratio_status = "HIGH PREMIUM" if ratio > 35.0 else ("DEPRESSED" if ratio < 15.0 else "BALANCED")
+    
+    return {
+        "oil_price": oil_price,
+        "oil_chg_pct": oil_chg_pct,
+        "gold_oil_ratio": ratio,
+        "ratio_desc": f"{ratio:.1f}x ({ratio_status})",
+        "regime": regime,
+        "regime_desc": regime_desc,
+        "is_positive": is_positive_oil,
+        "gamma_flip": gamma_flip_xau,
+        "gamma_flip_vol_m": gamma_flip_vol_m,
+        "call_wall": call_wall_xau,
+        "call_wall_vol_m": call_wall_vol_m,
+        "put_wall": put_wall_xau,
+        "put_wall_vol_m": put_wall_vol_m,
+        "net_gex_m": net_oil_gex_m
+    }
+
 # ==============================================================================
 # MODE 2: BTCUSD CUSTOM GEX (3 PILAR: NATIVE DERIVATIF, XAUT, GC=F GOLD)
 # ==============================================================================
