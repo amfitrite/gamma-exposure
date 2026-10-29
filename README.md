@@ -17,176 +17,192 @@ Sistem pengumpul data pasar terpadu (*real-time collector*) dan analisis eksposu
 ┌────────────────────────────────────────────────────────┐
 │         Python GEX & Market Engine (Localhost)         │
 │  - TCP Listener Port 5556 (XAUUSD Live Ticks)          │
-│  - Direct Crawler: COMEX (GC=F), BTCUSDT, XAUTUSDT     │
-│  - Cross-Asset GEX Analytical Engine                   │
+│  - Direct Crawler: GC=F, BTCUSDT, XAUTUSDT, DXY, CL=F  │
+│  - Cross-Asset Multi-Pillar GEX Analytical Engine      │
 └──────────────────────────┬─────────────────────────────┘
                            │
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │           Pure Text-Based HUD / Terminal               │
-│  - Pantauan Harga Live (XAUUSD, COMEX, BTC, XAUT)      │
-│  - Matriks GEX 3 Mode Interaktif                       │
-│  - Frameless, Zero Extra Windows, Ultra Low Latency    │
+│  - Pantauan Harga Live Real-Time                       │
+│  - Matriks GEX Terstandarisasi Warna (Call/Flip/Put)   │
+│  - Frameless, Taskbar-Integrated, Ultra Low Latency    │
 └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Konsep Custom Gamma Exposure (GEX)
+## 2. Model 5 Pilar GEX untuk XAUUSD (Spot Gold)
 
-Secara konvensional di pasar keuangan, Gamma Exposure untuk emas selalu dihitung menggunakan opsi berjangka CME (COMEX Gold Options). Namun sistem ini mengimplementasikan **Custom Gamma Exposure** yang menggabungkan:
-1. **Benchmark Tradisional**: GEX berbasis COMEX Gold Options.
-2. **Custom GEX Berbasis BTCUSD**: Menggunakan kurva kelengkungan (*derivative curvature*) dan pemetaan strike BTCUSD ke skala emas untuk mendeteksi akselerasi *re-hedging* dealer kripto.
-3. **Custom GEX Berbasis XAUTUSDT**: Menggunakan elastisitas pasak (*peg curvature*) dan kolam arbitrase Tether Gold untuk mengukur dinding likuiditas dan tekanan deviasi pasak.
+Secara konvensional, Gamma Exposure (GEX) hanya dihitung dari kontrak opsi emas CME (COMEX Gold Options). Namun sistem ini mengimplementasikan **Cross-Asset Multi-Pillar Custom GEX** yang memadukan 5 pilar pasar keuangan global untuk memetakan level magnet likuiditas dan dinding lindung nilai (*hedging walls*) dealer:
 
----
+```mermaid
+flowchart TD
+    Gold["XAUUSD SPOT GOLD"]
+    
+    P1["1. COMEX Futures (GC=F)"] -->|"Benchmark Opsi Tradisional"| Gold
+    P2["2. BTCUSD (Binance Cloud)"] -->|"Kurva Volatilitas Derivatif Kripto"| Gold
+    P3["3. XAUTUSDT (OKX REST)"] -->|"Pasak Arbitrase Bullion Digital"| Gold
+    P4["4. DXY Dollar Index (ICE / NYB)"] -->|"Inversi Moneter Makro (Beta ≈ 1.8x)"| Gold
+    P5["5. Crude Oil WTI (NYMEX CL=F)"] -->|"Ekspektasi Inflasi & Geopolitik"| Gold
+```
 
-### A. Mode 1: XAUUSD (Spot Gold)
-Menganalisis eksposur gamma dari 3 pilar:
-1. **GEX pada COMEX Gold (`GC=F`) [Benchmark Tradisional]**:
-   * Menentukan **Call Wall** (resistensi magnetik), **Put Wall** (lantai support dealer), dan **Gamma Flip** CME.
+### Rincian 5 Pilar:
+
+1. **Pilar 1: COMEX Gold Futures (`GC=F`) [Benchmark Tradisional]**:
+   * Menghitung **Call Wall** (resistensi magnetik), **Put Wall** (lantai support dealer), dan **Gamma Flip** pasar berjangka CME.
    * Net Dollar GEX ($M per 1% move).
-2. **Custom GEX pada BTCUSD [Crypto Derivative Curvature]**:
+
+2. **Pilar 2: BTCUSD [Crypto Derivative Curvature]**:
    * Menghitung **BTC-Induced Gamma Flip** pada skala harga emas.
-   * Menentukan **Call/Put Walls pada Emas** yang terinduksi oleh posisi dealer derivatif Bitcoin.
-   * Mengukur risiko *convexity spillover* dan aliran *hedging*.
-3. **Custom GEX pada XAUTUSDT [Tether Gold Peg Curvature]**:
-   * Mengukur *basis peg spread* dan stabilitas pasak.
+   * Menentukan **Call/Put Walls pada Emas** yang terinduksi oleh posisi dealer derivatif Bitcoin (grid strike per $2,500).
+   * Mengukur risiko *convexity spillover* dan aliran re-hedging dealer delta-netral.
+
+3. **Pilar 3: XAUTUSDT [Tether Gold Peg Arbitrage]**:
+   * Mengukur *basis peg spread* dan stabilitas pasak emas fisik vs token kripto.
    * Menghitung **Peg Gamma Flip Level** dan dinding arbitrase dealer (*Arbitrage Call/Put Walls*).
 
-### B. Mode 2: BTCUSD (Bitcoin)
-1. **Custom GEX pada XAUTUSDT [Gold Token Hedging on BTC]**:
-   * Menghitung rasio nilai tukar XAUT per BTC.
-   * Menentukan **Gamma Flip BTC** dan **Call/Put Walls** yang terinduksi oleh rotasi emas sintetis.
-   * Mendeteksi level pemicu *Flight to Gold Defense*.
+4. **Pilar 4: DXY Dollar Index (`DX-Y.NYB`) [Inversi Moneter Makro]**:
+   * **Hukum Inversi Gamma (*Inverse Gamma Law*)**:
+     Karena XAUUSD adalah rasio Emas/USD, maka batas pergerakan Dollar bekerja secara terbalik terhadap Emas:
+     * **DXY Call Wall (Resistensi USD)** $\rightarrow$ Menjadi **XAUUSD Put Wall (Lantai Support Emas)**.
+     * **DXY Put Wall (Support USD)** $\rightarrow$ Menjadi **XAUUSD Call Wall (Plafon Emas)**.
+     * **DXY Gamma Flip** $\rightarrow$ Titik balik akselerasi mata uang. Saat DXY jatuh ke area negatif GEX, pelarian likuiditas memicu akselerasi beli pada XAUUSD.
+   * Menggunakan koefisien elastisitas makro $\beta \approx 1.8\text{x}$.
 
-### C. Mode 3: XAUTUSDT (Tether Gold)
-1. **Custom GEX pada BTCUSD [Bitcoin Derivative Spillover on XAUT]**:
-   * Menghitung **Gamma Flip XAUT** dan **Call/Put Walls** yang terinduksi oleh guncangan volatilitas Bitcoin.
-   * Mendeteksi bias rotasi modal (*Bullish Safe-Haven Inflow* vs *Steady Accumulation*).
+5. **Pilar 5: Crude Oil WTI (`CL=F`) [Komoditas Energi & Ekspektasi Inflasi]**:
+   * Minyak mentah adalah komponen nomor satu pembentuk inflasi global (Headline CPI). Kenaikan minyak menekan *real yields* obligasi dan mendorong minat lindung nilai emas.
+   * Menggunakan proyeksi **Gold-to-Oil Ratio (G/O Ratio)** ($\approx 1\text{ oz Gold} / 1\text{ bbl Oil}$) untuk memetakan strike opsi energi NYMEX ($5.00 interval) ke skala harga emas spot.
+   * Mengukur rejim *Geopolitical Shock Spillover* saat volatilitas energi melonjak mendadak.
 
-### D. Tampilan Eksklusif Berdasarkan Mode (Zero Cross-Clutter)
-Layar hanya menampilkan data GEX yang relevan dengan **mode yang sedang aktif**:
-* **Jika Mode `XAUUSD` Aktif**: 
-  * Layar **hanya menampilkan GEX untuk XAUUSD** (GEX pada COMEX, GEX pada BTCUSD, dan GEX pada XAUTUSDT). Data mode BTCUSD & XAUTUSDT disembunyikan total.
-* **Jika Mode `BTCUSD` Aktif**: 
-  * Layar **hanya menampilkan GEX untuk BTCUSD** (GEX pada XAUTUSDT). Data XAUUSD disembunyikan.
-* **Jika Mode `XAUTUSDT` Aktif**: 
-  * Layar **hanya menampilkan GEX untuk XAUTUSDT** (GEX pada BTCUSD). Data XAUUSD disembunyikan.
+---
 
-Satu-satunya elemen kontrol pada layar adalah **tombol pemilih 3 mode**: `[ XAUUSD ]`, `[ BTCUSD ]`, dan `[ XAUTUSDT ]`.
+## 3. Standarisasi Tampilan Metrik & Warna
 
-### E. Visual Mockup Tampilan 3 Mode
+Semua mode di terminal mengikuti hierarki warna yang telah distandarisasi secara ketat:
+* **Call Wall**: **Merah** (`#f85149`) — Batas resistensi atas dealer opsi.
+* **Gamma Flip Level**: **Putih Bold** (`#ffffff`) — Level netral pembalik rejim volatilitas.
+* **Put Wall**: **Hijau** (`#3fb950`) — Batas support bawah dealer opsi.
 
-#### Tampilan Mode 1: XAUUSD (Aktif)
+Masing-masing metrik disajikan secara terpisah pada barisnya sendiri lengkap dengan estimasi **Notional Volume ($M)**:
 ```text
-====================================================================================
- [ ■ XAUUSD ]                 [   BTCUSD   ]                 [   XAUTUSDT   ]
-====================================================================================
->> MODE: XAUUSD (SPOT GOLD)
-Spot: $4,076.80 │ Bid: $4,076.65 │ Ask: $4,076.95 │ Spread: $0.30 │ Vol: 1.00
-------------------------------------------------------------------------------------
-1. COMEX (Futures: $4,076.80)  [* ONLINE] [KLIK TEST CMD] >>
-   • Basis vs Futures : +$0.00 │ Regime: [+GEX POSITIVE] LONG GAMMA
-   • Call Wall        : $4,100.00 (Vol: $28.40M)
-   • Gamma Flip Level : $4,065.00 (Vol: $9.60M)
-   • Put Wall         : $4,025.00 (Vol: $24.80M)
-   • Net Dollar GEX   : +$26.50M per 1% move
-
-2. BTCUSD (Spot: $80,691.85)   [* ONLINE] [KLIK TEST CMD] >>
-   • 24H Change       : +0.56% │ Rasio: 19.79x │ Regime: [+GEX BTC] VOLATILITY DAMPENER
-   • Call Wall        : $4,140.00 (Vol: $18.50M)
-   • Gamma Flip Level : $4,045.22 (Vol: $8.20M)
-   • Put Wall         : $4,010.00 (Vol: $15.80M)
-   • Net Dollar GEX   : +$17.04M per 1% move
-
-3. XAUTUSDT (Spot: $4,062.60)  [* ONLINE] [KLIK TEST CMD] >>
-   • Spread vs Spot   : $-14.20 (-0.35%) │ Regime: [+GEX XAUT] TIGHT PEG
-   • Call Wall        : $4,098.10 (Vol: $12.80M)
-   • Gamma Flip Level : $4,069.70 (Vol: $6.40M)
-   • Put Wall         : $4,055.50 (Vol: $11.20M)
-   • Net Dollar GEX   : +$10.19M per 1% move
-
-──────────────────────────────────────────────────────────────────────────────────
-[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]
-INSTRUMEN     │ CALL WALL (VOL)       │ GAMMA FLIP (VOL)      │ PUT WALL (VOL)
-──────────────┼───────────────────────┼───────────────────────┼───────────────────
-1. COMEX      │ $4,100.00 ($28.40M)   │ $4,065.00 ($9.60M)    │ $4,025.00 ($24.80M)
-2. BTCUSD     │ $4,140.00 ($18.50M)   │ $4,045.22 ($8.20M)    │ $4,010.00 ($15.80M)
-3. XAUTUSDT   │ $4,098.10 ($12.80M)   │ $4,069.70 ($6.40M)    │ $4,055.50 ($11.20M)
-====================================================================================
-TEST SCRAPPER:  [1. COMEX]   [2. BTCUSD]   [3. XAUTUSDT]
-```
-
-#### Tampilan Mode 2: BTCUSD (Aktif)
-```text
-====================================================================================
- [   XAUUSD   ]                 [ ■ BTCUSD ]                 [   XAUTUSDT   ]
-====================================================================================
->> MODE: BTCUSD
-Spot: $80,691.85 │ 24H: +0.56% ▲
-------------------------------------------------------------------------------------
-1. XAUTUSDT
-   • XAUT Spot Price  : $4,062.60 │ Rasio: 19.79 XAUT/BTC
-   • Gamma Regime     : [+GEX] BALANCED ROTATION
-   • BTC Gamma Flip   : $78,500.00
-   • Major Walls BTC  : Call: $82,500.00 │ Put: $77,500.00
-   • Net Dollar GEX   : +$18.20M per 1% move
-   • Capital Rotation : BALANCED RE-HEDGING
-   • Hedging Trigger  : Jika BTC < $77,800.00
-====================================================================================
-```
-
-#### Tampilan Mode 3: XAUTUSDT (Aktif)
-```text
-====================================================================================
- [   XAUUSD   ]                 [   BTCUSD   ]                 [ ■ XAUTUSDT ]
-====================================================================================
->> MODE: XAUTUSDT
-Spot: $4,062.60 │ 24H: +0.88% ▲
-------------------------------------------------------------------------------------
-1. BTCUSD
-   • BTC Spot Price   : $80,691.85 (+0.56%)
-   • Gamma Regime     : [+GEX] STEADY VALUE ABSORPTION
-   • XAUT Gamma Flip  : $4,050.00
-   • Major Walls XAUT : Call: $4,090.00 │ Put: $4,040.00
-   • Net Dollar GEX   : +$12.50M per 1% move
-   • Volatility State : NORMAL / COMPRESSED
-   • Rotational Bias  : STEADY ACCUMULATION
-====================================================================================
+   • Call Wall        : $... (Vol: $...M)   [MERAH]
+   • Gamma Flip Level : $... (Vol: $...M)   [PUTIH BOLD]
+   • Put Wall         : $... (Vol: $...M)   [HIJAU]
+   • Net Dollar GEX   : $...M per 1% move
 ```
 
 ---
 
-## 3. Komponen Multi-Port Bridge EA (`multi port bridge EA.mq5`)
+## 4. Spesifikasi Mode Layar Terminal
+
+Terminal HUD dirancang dengan prinsip **Zero Cross-Clutter**: layar hanya menyajikan informasi yang relevan dengan mode yang dipilih pengguna.
+
+### A. Mode 1: XAUUSD (Spot Gold)
+Menampilkan analisis multi-pilar terhadap emas spot, dilengkapi tabel riset perbandingan dinding & flip di bagian bawah:
+```text
+>> MODE: XAUUSD (SPOT GOLD) [MT5 LIVE STREAM]
+Spot: $2,745.20 │ Bid: $2,745.05 │ Ask: $2,745.35 │ Spread: $0.30 │ Vol: 1.00
+
+1. GOLD FUTURES (Yahoo GC=F / CME Ref: $2,746.50)
+   • Basis vs Futures : -$1.30 │ Regime: [+GEX POSITIVE] LONG GAMMA
+   • Call Wall        : $2,775.00 (Vol: $32.40M)   [MERAH]
+   • Gamma Flip Level : $2,740.00 (Vol: $11.20M)   [PUTIH BOLD]
+   • Put Wall         : $2,725.00 (Vol: $28.50M)   [HIJAU]
+   • Net Dollar GEX   : +$22.80M per 1% move
+
+2. BTCUSD (Binance Cloud Mirror: $80,639.12)
+   • 24H Change       : +0.79% │ Rasio: 29.37x │ Regime: [+GEX BTC] VOLATILITY DAMPENER
+   • Call Wall        : $2,785.00 (Vol: $18.20M)   [MERAH]
+   • Gamma Flip Level : $2,738.50 (Vol: $7.90M)    [PUTIH BOLD]
+   • Put Wall         : $2,710.00 (Vol: $16.40M)   [HIJAU]
+   • Net Dollar GEX   : +$16.20M per 1% move
+
+3. XAUTUSDT (OKX Market REST: $4,059.80)
+   • Spread vs Spot   : -$14.60 (-0.53%) │ Regime: [+GEX XAUT] TIGHT PEG ARBITRAGE
+   • Call Wall        : $2,760.00 (Vol: $12.50M)   [MERAH]
+   • Gamma Flip Level : $2,745.00 (Vol: $5.80M)    [PUTIH BOLD]
+   • Put Wall         : $2,730.00 (Vol: $10.90M)   [HIJAU]
+   • Net Dollar GEX   : +$11.10M per 1% move
+
+────────────────────────────────────────────────────────────────────────────────────
+[RISET PERBANDINGAN WALLS & FLIP - SKALA XAUUSD]
+INSTRUMEN     │ CALL WALL (VOL)        │ GAMMA FLIP (VOL)       │ PUT WALL (VOL)
+──────────────┼────────────────────────┼────────────────────────┼───────────────────
+1. GC=F GOLD  │ $2,775.00 ($32.4M)     │ $2,740.00 ($11.2M)     │ $2,725.00 ($28.5M)
+2. BTC/USDT   │ $2,785.00 ($18.2M)     │ $2,738.50 ($7.9M)      │ $2,710.00 ($16.4M)
+3. XAUT/USDT  │ $2,760.00 ($12.5M)     │ $2,745.00 ($5.8M)      │ $2,730.00 ($10.9M)
+```
+
+---
+
+### B. Mode 2: BTCUSD (Bitcoin)
+Secara khusus berfokus pada **BTCUSD - GEX dari XAUTUSDT**:
+```text
+>> MODE: BTCUSD
+Spot: $80,639.12 │ 24H Change: +0.79% ▲
+
+BTCUSD - GEX DARI XAUTUSDT
+   • XAUT Spot Price  : $4,059.80 │ Rasio: 19.86 XAUT/BTC
+   • Gamma Regime     : [+GEX] BALANCED ROTATION
+   • Call Wall        : $82,500.00 (Vol: $143.70M)  [MERAH]
+   • Gamma Flip Level : $78,500.00 (Vol: $59.63M)   [PUTIH BOLD]
+   • Put Wall         : $77,500.00 (Vol: $120.25M)  [HIJAU]
+   • Net Dollar GEX   : +$822.52M per 1% move
+   • Capital Rotation : BALANCED RE-HEDGING (Rotasi Portofolio Normal)
+   • Hedging Trigger  : Jika BTC < $77,800.00
+```
+
+---
+
+### C. Mode 3: XAUTUSDT (Tether Gold)
+Secara khusus berfokus pada **GEX DARI BTCUSD**:
+```text
+>> MODE: XAUTUSDT
+Spot: $4,059.80 │ 24H Change: +1.17% ▲
+
+GEX DARI BTCUSD
+   • BTC Spot Price   : $80,660.00 (+0.81%)
+   • Gamma Regime     : [+GEX] STEADY VALUE ABSORPTION
+   • Call Wall        : $4,075.00 (Vol: $21.57M)   [MERAH]
+   • Gamma Flip Level : $4,035.00 (Vol: $7.76M)    [PUTIH BOLD]
+   • Put Wall         : $4,025.00 (Vol: $17.75M)   [HIJAU]
+   • Net Dollar GEX   : +$15.63M per 1% move
+   • Volatility State : NORMAL / COMPRESSED
+   • Rotational Bias  : STEADY ACCUMULATION
+```
+
+---
+
+## 5. Komponen Multi-Port Bridge EA (`multi port bridge EA.mq5`)
 
 EA MQL5 kustom yang mampu menyiarkan tick order flow ke hingga 5 port TCP secara paralel:
-* **Port 1 (5555)**: Port default untuk streaming umum / Terminal TickMap eksternal.
-* **Port 2 (5556)**: Dedicated Port untuk GEX Engine (XAUUSD Tick Stream).
-* **Port 3 - 5 (5557 - 5559)**: Port cadangan tambahan.
+* **Port 5552**: Dedicated Port untuk TickMap Bridge (`Tick Map`).
+* **Port 5556**: Dedicated Port untuk Gamma Exposure Terminal (`Gamma Exposure`).
+* **Port 5557 - 5559**: Port cadangan tambahan.
 * **Karakteristik**:
-  * *Fault-tolerant*: Jika salah satu port terputus, port lain tetap berjalan tanpa gangguan.
+  * *Fault-tolerant*: Jika salah satu port aplikasi terputus, port lain tetap berjalan tanpa gangguan.
   * *Non-blocking*: Timeout koneksi 300 ms (mencegah chart MT5 membeku).
   * *Integrated Chart HUD*: Menampilkan status aktif setiap port secara visual di chart MT5.
 
 ---
 
-## 4. File dalam Repository
+## 6. Struktur File dalam Repository
 
 | File | Keterangan |
 | :--- | :--- |
-| `gex_terminal.py` | Terminal HUD GEX 3-Mode teks murni frameless dengan tombol 1-klik buka PowerShell (Zero-Typing). |
+| `gex_terminal.py` | Terminal HUD GEX teks murni frameless dengan integrasi taskbar Windows & tombol uji scrapper. |
 | `gex_terminal.pyw` | Launcher windowless Windows untuk GEX Terminal (tanpa flash CMD). |
-| `gex_engine.py` | Engine kalkulasi matematis Gamma Exposure, Call/Put Walls, Gamma Flip, dan Net Dollar GEX ($M). |
-| `mt5_listener.py` | Listener socket TCP thread-safe untuk menerima tick real-time dari MT5 EA (port 5556 / 5555). |
-| `manual_check.ps1` | Script uji mandiri PowerShell otomatis (Zero-Typing) untuk COMEX, BTCUSD, dan XAUTUSDT. |
-| `collector.py` | Engine pengambil data pasar (Binance Vision AWS Mirror, OKX REST, dan Yahoo Finance GC=F synthetic). |
-| `multi_port_bridge_EA.mq5` | Expert Advisor MT5 pengirim tick ke multi-port (5555+). |
-| `README.md` | Dokumentasi arsitektur dan spesifikasi sistem. |
+| `gex_engine.py` | Engine kalkulasi matematis GEX, Call/Put Walls, Gamma Flip, dan Net Dollar GEX ($M). |
+| `mt5_listener.py` | Listener socket TCP thread-safe untuk menerima tick real-time dari MT5 EA (port 5556). |
+| `manual_check.ps1` | Script uji mandiri PowerShell otomatis (Zero-Typing) untuk verifikasi feed pasar. |
+| `collector.py` | Engine pengambil data pasar (Binance Vision AWS Mirror, OKX REST, Yahoo Finance GC=F, DXY, WTI). |
+| `multi_port_bridge_EA.mq5` | Expert Advisor MT5 pengirim tick ke multi-port (5552, 5556, dst). |
+| `README.md` | Dokumentasi arsitektur, spesifikasi sistem, dan landasan derivatif makro. |
 
 ---
 
-## 5. Cara Menjalankan
+## 7. Cara Menjalankan
 
 ### Menjalankan GEX Terminal HUD:
 ```powershell
@@ -198,16 +214,10 @@ python gex_terminal.py
 ```
 
 ### Uji Mandiri Scrapper Langsung (Zero-Typing PowerShell):
-Pengguna dapat langsung mengklik tombol **`[1. GC=F GOLD]`**, **`[2. BTC/USDT]`**, atau **`[3. XAUT/USDT]`** pada bagian footer terminal. Jendela PowerShell akan langsung muncul mengeksekusi koneksi API dan menampilkan data valid tanpa perlu mengetik manual:
-```powershell
-# Atau eksekusi script manual dari PowerShell jika diinginkan:
-powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 1   # GC=F Gold (Yahoo Finance / CME Ref)
-powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 2   # BTC/USDT (Binance Vision Cloud)
-powershell.exe -ExecutionPolicy Bypass -File .\manual_check.ps1 3   # XAUT/USDT (OKX Market REST)
-```
+Pengguna dapat langsung mengklik tombol **`[1. GC=F GOLD]`**, **`[2. BTC/USDT]`**, atau **`[3. XAUT/USDT]`** pada bagian footer terminal untuk memunculkan jendela verifikasi koneksi data live.
 
 ### Navigasi & Pintasan Keyboard:
-* **Tombol Mode**: Klik `[XAUUSD]`, `[BTCUSD]`, atau `[XAUTUSDT]` di header atas untuk berpindah mode.
-* **Tombol Footer Scrapper**: Klik `[1. GC=F GOLD]`, `[2. BTC/USDT]`, atau `[3. XAUT/USDT]` untuk membuka jendela uji PowerShell otomatis.
-* **Klik & Drag**: Memindahkan posisi jendela di layar monitor.
+* **Tombol Mode (Header Atas)**: Klik `[XAUUSD]`, `[BTCUSD]`, atau `[XAUTUSDT]`.
+* **Pintasan Keyboard**: Tombol `1`, `2`, atau `3` untuk beralih mode secara instan.
+* **Klik & Drag**: Memindahkan posisi jendela frameless di layar monitor.
 * **ESC** atau **Q**: Keluar dari aplikasi.
